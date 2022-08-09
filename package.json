@@ -1,0 +1,18 @@
+{
+  "name": "triadica",
+  "version": "0.0.0",
+  "description": "Tiny tool for playing with WebGL",
+  "main": "lib/index.mjs",
+  "repository": "git@github.com:Triadica/triadica.ts.git",
+  "author": "tiye <jiyinyiyong@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "compile": "rm -rfv lib/* && tsc"
+  },
+  "devDependencies": {
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "twgl.js": "^4.24.0"
+  }
+}

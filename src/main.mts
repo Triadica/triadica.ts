@@ -1,0 +1,87 @@
+import { isDev } from "config.mjs";
+import { Atom } from "data.mjs";
+import { atomGlContext } from "global.mjs";
+import {
+  loadObjects,
+  paintCanvas,
+  resetCanvasSize,
+  setupMouseEvents,
+} from "index.mjs";
+import twgl from "twgl.js";
+import produce from "immer";
+
+let canvas = document.querySelector("canvas");
+
+let atomStore = new Atom({
+  v: 0,
+  tab: "axis",
+  p1: [0, 0, 0],
+  states: {},
+});
+
+export let main = () => {
+  twgl.setDefaults({
+    attribPrefix: "a_",
+  });
+
+  // TODO inject hud
+
+  resetCanvasSize(canvas);
+  atomGlContext.reset(canvas.getContext("webgl", { antialias: true }));
+  renderApp();
+
+  // TODO render control, from touch-control
+  // start-control-loop! 10 on-control-event
+
+  window.onresize = (event) => {
+    resetCanvasSize(canvas);
+    paintCanvas();
+  };
+  setupMouseEvents(canvas);
+};
+
+let renderApp = () => {
+  loadObjects(compContainer(atomStore.deref()), dispatch);
+  paintCanvas();
+};
+
+let dispatch = (op: string, data: any) => {
+  if (isDev) {
+    console.log(op, data);
+  }
+
+  if (op === "city-spin") {
+    // TODO
+  } else {
+    let store = atomStore.deref();
+    let next = Array.isArray(op)
+      ? updateStates(store, [op, data])
+      : (() => {
+          switch (op) {
+            case "tab-focus":
+              return { tab: data, ...store };
+            default:
+              return null;
+          }
+        })();
+
+    if (next != null) {
+      atomStore.reset(next as any); // TODO type for store
+    }
+  }
+};
+
+let updateStates = (store: any, pair: [string[], any]) => {
+  let [cursor, newState] = pair;
+
+  produce(store, (s: any) => {
+    let state = s.states;
+    for (let i = 0; i < cursor.length; i++) {
+      if (state[cursor[i]] == null) {
+        state[cursor[i]] = { data: {} };
+      }
+      state = state[cursor[i]];
+    }
+    state.data = newState;
+  });
+};
