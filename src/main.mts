@@ -9,6 +9,7 @@ import {
 } from "index.mjs";
 import twgl from "twgl.js";
 import produce from "immer";
+import { atomDirtyUniforms, compContainer } from "./app/container.mjs";
 
 let canvas = document.querySelector("canvas");
 
@@ -32,6 +33,13 @@ export let main = () => {
 
   // TODO render control, from touch-control
   // start-control-loop! 10 on-control-event
+
+  atomStore.addWatch("change", (prev, store) => {
+    renderApp();
+  });
+  atomDirtyUniforms.addWatch("change", (prev, store) => {
+    renderApp();
+  });
 
   window.onresize = (event) => {
     resetCanvasSize(canvas);
@@ -84,4 +92,18 @@ let updateStates = (store: any, pair: [string[], any]) => {
     }
     state.data = newState;
   });
+};
+
+export let reload = () => {
+  // TODO reset-memof1-caches
+  atomStore.removeWatch("change");
+  atomStore.addWatch("change", (prev, store) => {
+    renderApp();
+  });
+  // TODO replace-control-loop
+  setupMouseEvents(canvas);
+  window.onresize = (event) => {
+    resetCanvasSize(canvas);
+    paintCanvas();
+  };
 };

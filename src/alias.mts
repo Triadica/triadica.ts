@@ -1,6 +1,6 @@
 import twgl from "twgl.js";
 
-export let group = (options: any[], ...children: any[]) => {
+export let group = (options: any, ...children: any[]) => {
   return {
     type: "group",
     children: children,
@@ -16,7 +16,7 @@ export let object = (options: {
   points?: number[][];
   indices?: number[];
   attributes?: { [key: string]: number[][] };
-  groupedAttributes: any[];
+  groupedAttributes?: any[];
 }) => {
   let arrays: any = {};
   let ret: any = {};

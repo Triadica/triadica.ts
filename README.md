@@ -4,6 +4,10 @@
 
 ### Usages
 
+```bash
+yarn add triadica
+```
+
 _TODO_
 
 ### License
