@@ -1,4 +1,5 @@
-import twgl from "twgl.js";
+import { V3 } from "./quaternion.mjs";
+import * as twgl from "twgl.js";
 
 export let group = (options: any, ...children: any[]) => {
   return {
@@ -13,10 +14,11 @@ export let object = (options: {
   vertexShader: string;
   fragmentShader: string;
   drawMode: DrawMode;
-  points?: number[][];
+  points?: V3[];
   indices?: number[];
   attributes?: { [key: string]: number[][] };
   groupedAttributes?: any[];
+  getUniforms?: () => any;
 }) => {
   let arrays: any = {};
   let ret: any = {};
@@ -33,7 +35,7 @@ export let object = (options: {
     Object.keys(options.attributes).length > 0
   ) {
     for (let key in options.attributes) {
-      ret[key] = createAttributeArray(options.attributes[key]);
+      ret[key] = createAttributeArray(options.attributes[key] as any);
     }
   }
 
@@ -88,11 +90,15 @@ export let object = (options: {
   }
   return {
     type: "object",
+    drawMode: options.drawMode,
+    vertexShader: options.vertexShader,
+    fragmentShader: options.fragmentShader,
     arrays: arrays,
+    getUniforms: options.getUniforms,
   };
 };
 
-let createAttributeArray = (points: any[]) => {
+let createAttributeArray = (points: V3[]) => {
   let p0 = points[0];
   let positionArray = twgl.primitives.createAugmentedTypedArray(
     1,
@@ -106,6 +112,7 @@ let createAttributeArray = (points: any[]) => {
       // TODO type issue
       (positionArray as any)[i] = pps[i];
     }
+    return positionArray;
   } else if (typeof p0 === "number") {
     let positionArray = twgl.primitives.createAugmentedTypedArray(
       1,
@@ -116,8 +123,9 @@ let createAttributeArray = (points: any[]) => {
       // TODO type issue
       (positionArray as any)[idx] = points[idx];
     }
+    return positionArray;
   } else {
-    twgl.primitives.createAugmentedTypedArray(1, points.length, null);
+    return twgl.primitives.createAugmentedTypedArray(1, points.length, null);
   }
 };
 

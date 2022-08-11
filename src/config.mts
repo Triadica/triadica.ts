@@ -1,5 +1,5 @@
-import { Atom } from "data.mjs";
-import twgl from "twgl.js";
+import { Atom } from "./data.mjs";
+import * as twgl from "twgl.js";
 
 export let isDev = true; // TODO
 
@@ -24,14 +24,23 @@ export let cachedBuildProgram = (
   }
 };
 
+import glslPerspectiveCode from "../shaders/triadica-perspective.glsl";
+import glslNoisesCode from "../shaders/triadica-noises.glsl";
+import glslRotationCode from "../shaders/triadica-rotation.glsl";
+
 let replaceVertexShader = (vs: string): string => {
-  // TODO
-  return vs;
+  return vs
+    .replace("{{triadica_perspective}}", glslPerspectiveCode)
+    .replace("{{triadica_noises}}", glslNoisesCode)
+    .replace("{{triadica_rotation}}", glslRotationCode);
 };
 
+import glslColorsCode from "../shaders/triadica-colors.glsl";
+
 let replaceFragmentShader = (fs: string): string => {
-  // TODO
-  return fs;
+  return fs
+    .replace("{{triadica_colors}}", glslColorsCode)
+    .replace("{{triadica_noises}}", glslNoisesCode);
 };
 
 export let dpr = window.devicePixelRatio;

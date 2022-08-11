@@ -1,13 +1,13 @@
-import { isDev } from "config.mjs";
-import { Atom } from "data.mjs";
-import { atomGlContext } from "global.mjs";
+import { isDev } from "./config.mjs";
+import { Atom } from "./data.mjs";
+import { atomGlContext } from "./global.mjs";
 import {
   loadObjects,
   paintCanvas,
   resetCanvasSize,
   setupMouseEvents,
-} from "index.mjs";
-import twgl from "twgl.js";
+} from "./index.mjs";
+import * as twgl from "twgl.js";
 import produce from "immer";
 import { atomDirtyUniforms, compContainer } from "./app/container.mjs";
 
@@ -49,6 +49,7 @@ export let main = () => {
 };
 
 let renderApp = () => {
+  console.info("render app");
   loadObjects(compContainer(atomStore.deref()), dispatch);
   paintCanvas();
 };

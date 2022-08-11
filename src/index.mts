@@ -3,20 +3,20 @@ import {
   cachedBuildProgram,
   dpr,
   isPostEffect,
-} from "config.mjs";
-import { Atom } from "data.mjs";
+} from "./config.mjs";
+import { Atom } from "./data.mjs";
 import {
   atomGlContext,
   atomObjectsBuffer,
   atomObjectsTree,
   atomProxiedDispatch,
-} from "global.mjs";
+} from "./global.mjs";
 import {
   atomViewerPosition,
   atomViewerUpward,
   newLookatPoint,
-} from "perspective.mjs";
-import twgl from "twgl.js";
+} from "./perspective.mjs";
+import * as twgl from "twgl.js";
 
 export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
   canvas.style.width = `${window.innerWidth}`;
@@ -31,7 +31,7 @@ export let loadObjects = (
   atomObjectsTree.reset(tree);
   atomProxiedDispatch.reset(dispatch);
   traverseTree(tree, [], (obj, coord) => {
-    let program = cachedBuildProgram(gl, obj.fragmentShader, obj.vertexShader);
+    let program = cachedBuildProgram(gl, obj.vertexShader, obj.fragmentShader);
     let buffer = twgl.createBufferInfoFromArrays(gl, obj.arrays);
     atomObjectsBuffer.deref().push({
       program,
@@ -79,13 +79,17 @@ export let paintCanvas = () => {
   clearGl(gl);
   let objects = atomObjectsBuffer.deref();
   for (let object of objects) {
-    let programInfo = object.programInfo;
-    let bufferInfo = object.bufferInfo;
-    let currentUniforms = {};
+    console.log("rendering object", object);
+    let programInfo = object.program;
+    let bufferInfo = object.buffer;
+    let currentUniforms = uniforms;
     if (object.getUniforms) {
       currentUniforms = object.getUniforms();
+      Object.assign(currentUniforms, uniforms);
     }
+    gl.useProgram(programInfo.program);
     twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
+    console.log("currentUniforms", currentUniforms);
     twgl.setUniforms(programInfo, currentUniforms);
     switch (object.drawMode) {
       case "triangles":
@@ -193,13 +197,13 @@ export let traverseTree = (
   coord: number[],
   cb: (obj: any, coord: any) => void
 ) => {
-  if (tree) {
+  if (tree != null) {
     switch (tree.type) {
       case "object":
-        cb(tree.children, coord);
+        cb(tree, coord);
         break;
       case "group":
-        if (tree.children) {
+        if (tree.children != null) {
           tree.children.map((child: any, idx: number) => {
             traverseTree(child, [...coord, idx], cb);
           });

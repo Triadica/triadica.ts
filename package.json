@@ -11,9 +11,11 @@
   },
   "devDependencies": {
     "typescript": "^4.7.4",
-    "vite": "^3.0.4"
+    "vite": "^3.0.4",
+    "vite-plugin-glsl": "^0.3.0"
   },
   "dependencies": {
+    "@quamolit/touch-control": "^0.0.11",
     "immer": "^9.0.15",
     "twgl.js": "^4.24.0"
   }

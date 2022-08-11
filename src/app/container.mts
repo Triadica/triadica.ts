@@ -1,5 +1,8 @@
-import { group, object } from "alias.mjs";
-import { Atom } from "data.mjs";
+import { group, object } from "../alias.mjs";
+import { Atom } from "../data.mjs";
+
+import vs from "../../shaders/lines.vert";
+import fs from "../../shaders/lines.frag";
 
 export let atomDirtyUniforms = new Atom({});
 
@@ -9,12 +12,14 @@ export let compContainer = (store: any) => {
 
 let compAxis = () => {
   return object({
-    vertexShader: "",
-    fragmentShader: "",
+    vertexShader: vs,
+    fragmentShader: fs,
     drawMode: "lines",
     points: [
       [-100, 0, 0],
       [100, 0, 0],
+      [0, -100, 0],
+      [0, 100, 0],
     ],
   });
 };
