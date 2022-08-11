@@ -100,14 +100,14 @@ export let object = (options: {
 
 let createAttributeArray = (points: V3[]) => {
   let p0 = points[0];
-  let positionArray = twgl.primitives.createAugmentedTypedArray(
-    1,
-    points.length,
-    Float32Array
-  );
   if (Array.isArray(p0)) {
     let pps = points.flat(); // only flat once
     let num = p0.length;
+    let positionArray = twgl.primitives.createAugmentedTypedArray(
+      num,
+      points.length,
+      Float32Array
+    );
     for (let i = 0; i < pps.length; i++) {
       // TODO type issue
       (positionArray as any)[i] = pps[i];

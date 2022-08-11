@@ -4,7 +4,8 @@ main();
 
 // TODO
 if ((import.meta as any).hot) {
-  (import.meta as any).hot.accept("./src/main.mjs", (m: any) => {
-    m.reload();
-  });
+  // (import.meta as any).hot.accept("./src/main.mts", (m: any) => {
+  //   console.log("reload");
+  //   m.reload();
+  // });
 }

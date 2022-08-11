@@ -107,4 +107,6 @@ export let reload = () => {
     resetCanvasSize(canvas);
     paintCanvas();
   };
+
+  console.info("reloaded");
 };

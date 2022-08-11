@@ -55,7 +55,7 @@ export let paintCanvas = () => {
     upwardDirection: atomViewerUpward.deref(),
     cameraPosition: atomViewerPosition.deref(),
     coneBackScale: backConeScale,
-    viewpointRatio: window.innerHeight / window.innerWidth,
+    viewportRatio: window.innerHeight / window.innerWidth,
   };
   let drawFb = loadSizedBuffer(gl, atomDrawFb, scaledWidth, scaledHeight);
   let effectXFb = loadSizedBuffer(gl, atomEffectXFb, scaledWidth, scaledHeight);
@@ -93,6 +93,7 @@ export let paintCanvas = () => {
     twgl.setUniforms(programInfo, currentUniforms);
     switch (object.drawMode) {
       case "triangles":
+        console.info("triangles");
         twgl.drawBufferInfo(gl, bufferInfo, gl.TRIANGLES);
         break;
       case "lines":
@@ -111,6 +112,7 @@ export let paintCanvas = () => {
     }
   }
   if (isPostEffect) {
+    console.error("TODO");
     let effectXPrograme = cachedBuildProgram(gl, "TODO", "TODO");
     let mixProgram = cachedBuildProgram(gl, "TODO", "TODO");
     let uvSettings = {
