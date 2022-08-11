@@ -3,13 +3,13 @@ import twgl from "twgl.js";
 
 export let isDev = true; // TODO
 
-let atomShaderPrograms = new Atom<Record<string, WebGLProgram>>({});
+let atomShaderPrograms = new Atom<Record<string, twgl.ProgramInfo>>({});
 
 export let cachedBuildProgram = (
-  gl: WebGL2RenderingContext,
+  gl: WebGLRenderingContext,
   vs: string,
   fs: string
-): WebGLProgram => {
+): twgl.ProgramInfo => {
   let caches = atomShaderPrograms.deref();
   let field = `${vs}\n@@@@@@\n${fs}`;
   if (caches[field] != null) {
@@ -33,3 +33,11 @@ let replaceFragmentShader = (fs: string): string => {
   // TODO
   return fs;
 };
+
+export let dpr = window.devicePixelRatio;
+
+export let backConeScale = 0.5;
+
+export let halfPi = 0.5 * Math.PI;
+
+export let isPostEffect = false; // TODO

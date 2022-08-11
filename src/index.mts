@@ -1,10 +1,21 @@
-import { cachedBuildProgram } from "config.mjs";
+import {
+  backConeScale,
+  cachedBuildProgram,
+  dpr,
+  isPostEffect,
+} from "config.mjs";
+import { Atom } from "data.mjs";
 import {
   atomGlContext,
   atomObjectsBuffer,
   atomObjectsTree,
   atomProxiedDispatch,
 } from "global.mjs";
+import {
+  atomViewerPosition,
+  atomViewerUpward,
+  newLookatPoint,
+} from "perspective.mjs";
 import twgl from "twgl.js";
 
 export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
@@ -13,7 +24,7 @@ export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
 };
 
 export let loadObjects = (
-  tree: any[],
+  tree: any,
   dispatch: (op: string, data: any) => void
 ) => {
   let gl = atomGlContext.deref();
@@ -31,8 +42,146 @@ export let loadObjects = (
   });
 };
 
+let atomDrawFb = new Atom(null);
+let atomEffectXFb = new Atom(null);
+let atomEffectYFb = new Atom(null);
+
 export let paintCanvas = () => {
-  // TODO
+  let gl = atomGlContext.deref();
+  let scaledWidth = dpr * window.innerWidth;
+  let scaledHeight = dpr * window.innerHeight;
+  let uniforms = {
+    lookPoint: newLookatPoint(),
+    upwardDirection: atomViewerUpward.deref(),
+    cameraPosition: atomViewerPosition.deref(),
+    coneBackScale: backConeScale,
+    viewpointRatio: window.innerHeight / window.innerWidth,
+  };
+  let drawFb = loadSizedBuffer(gl, atomDrawFb, scaledWidth, scaledHeight);
+  let effectXFb = loadSizedBuffer(gl, atomEffectXFb, scaledWidth, scaledHeight);
+  let effectYFb = loadSizedBuffer(gl, atomEffectYFb, scaledWidth, scaledHeight);
+  twgl.resizeCanvasToDisplaySize(gl.canvas, dpr);
+  if (isPostEffect) {
+    twgl.resizeFramebufferInfo(gl, drawFb);
+    twgl.bindFramebufferInfo(gl, drawFb);
+  } else {
+    twgl.bindFramebufferInfo(gl, null);
+  }
+  gl.viewport(0, 0, scaledWidth, scaledHeight);
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LESS);
+  gl.depthMask(true);
+  // gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+  // gl.enable(gl.BLEND);
+  // gl.enable(gl.CULL_FACE);
+  // gl.cullFace(gl.BACK);
+  // gl.cullFace(gl.FRONT_AND_BACK);
+  clearGl(gl);
+  let objects = atomObjectsBuffer.deref();
+  for (let object of objects) {
+    let programInfo = object.programInfo;
+    let bufferInfo = object.bufferInfo;
+    let currentUniforms = {};
+    if (object.getUniforms) {
+      currentUniforms = object.getUniforms();
+    }
+    twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
+    twgl.setUniforms(programInfo, currentUniforms);
+    switch (object.drawMode) {
+      case "triangles":
+        twgl.drawBufferInfo(gl, bufferInfo, gl.TRIANGLES);
+        break;
+      case "lines":
+        twgl.drawBufferInfo(gl, bufferInfo, gl.LINES);
+        break;
+      case "line-strip":
+        twgl.drawBufferInfo(gl, bufferInfo, gl.LINE_STRIP);
+        break;
+      case "line-loop":
+        twgl.drawBufferInfo(gl, bufferInfo, gl.LINE_LOOP);
+        break;
+      default:
+        console.warn(`unknown draw mode: ${object.drawMode}`);
+        twgl.drawBufferInfo(gl, bufferInfo, gl.LINES);
+        break;
+    }
+  }
+  if (isPostEffect) {
+    let effectXPrograme = cachedBuildProgram(gl, "TODO", "TODO");
+    let mixProgram = cachedBuildProgram(gl, "TODO", "TODO");
+    let uvSettings = {
+      position: createAttributeArray([
+        [-1, -1],
+        [1, -1],
+        [1, 1],
+        [-1, -1],
+        [-1, 1],
+        [1, 1],
+      ]),
+    };
+    let effectXBufferInfo = twgl.createBufferInfoFromArrays(gl, uvSettings);
+
+    let mixBufferInfo = twgl.createBufferInfoFromArrays(gl, uvSettings);
+    gl.disable(gl.DEPTH_TEST);
+    blurAtDirection(
+      gl,
+      drawFb,
+      effectXFb,
+      1,
+      effectXPrograme,
+      effectXBufferInfo
+    );
+    blurAtDirection(
+      gl,
+      effectXFb,
+      effectYFb,
+      0,
+      effectXPrograme,
+      effectXBufferInfo
+    );
+    blurAtDirection(
+      gl,
+      effectYFb,
+      effectXFb,
+      1,
+      effectXPrograme,
+      effectXBufferInfo
+    );
+    blurAtDirection(
+      gl,
+      effectXFb,
+      effectYFb,
+      0,
+      effectXPrograme,
+      effectXBufferInfo
+    );
+    blurAtDirection(
+      gl,
+      effectYFb,
+      effectXFb,
+      1,
+      effectXPrograme,
+      effectXBufferInfo
+    );
+    blurAtDirection(
+      gl,
+      effectXFb,
+      effectYFb,
+      0,
+      effectXPrograme,
+      effectXBufferInfo
+    );
+    twgl.bindFramebufferInfo(gl, null);
+    twgl.resizeCanvasToDisplaySize(gl.canvas, dpr);
+    clearGl(gl);
+    gl.useProgram(mixProgram);
+    twgl.setBuffersAndAttributes(gl, mixProgram, mixBufferInfo);
+    twgl.setUniforms(mixProgram, {
+      draw_tex: drawFb.attachments[0],
+      effect_x_tex: effectXFb.attachments[0],
+    });
+    twgl.drawBufferInfo(gl, mixBufferInfo, gl.TRIANGLES);
+  }
 };
 
 export let setupMouseEvents = (canvas: HTMLCanvasElement) => {
@@ -40,9 +189,101 @@ export let setupMouseEvents = (canvas: HTMLCanvasElement) => {
 };
 
 export let traverseTree = (
-  tree: any[],
-  coord: string[],
+  tree: any,
+  coord: number[],
   cb: (obj: any, coord: any) => void
 ) => {
-  // TODO
+  if (tree) {
+    switch (tree.type) {
+      case "object":
+        cb(tree.children, coord);
+        break;
+      case "group":
+        if (tree.children) {
+          tree.children.map((child: any, idx: number) => {
+            traverseTree(child, [...coord, idx], cb);
+          });
+        }
+        break;
+      default:
+        console.warn(`unknown element type: ${tree.type}`);
+        break;
+    }
+  }
+};
+
+let createAttributeArray = (points: any[]) => {
+  let p0 = points[0];
+  if (Array.isArray(p0)) {
+    let pps = points.flat();
+    let num = p0.length;
+    let positionArray = twgl.primitives.createAugmentedTypedArray(
+      num,
+      points.length,
+      null
+    );
+    for (let idx = 0; idx < points.length; idx++) {
+      (positionArray as any)[idx] = points[idx];
+    }
+
+    return positionArray;
+  }
+  if (typeof p0 === "number") {
+    let positionArray = twgl.primitives.createAugmentedTypedArray(
+      1,
+      points.length,
+      null
+    );
+    for (let idx = 0; idx < points.length; idx++) {
+      (positionArray as any)[idx] = points[idx];
+    }
+
+    return positionArray;
+  }
+  console.error('"unknown attributes data:' + points);
+  return twgl.primitives.createAugmentedTypedArray(1, points.length, null);
+};
+
+let blurAtDirection = (
+  gl: WebGLRenderingContext,
+  fromFb: twgl.FramebufferInfo,
+  toFb: twgl.FramebufferInfo,
+  direction: number,
+  program: any,
+  buffer: any
+) => {
+  twgl.resizeFramebufferInfo(gl, toFb);
+  twgl.resizeCanvasToDisplaySize(gl.canvas, dpr);
+  twgl.bindFramebufferInfo(gl, toFb);
+  // clearGl(gl);
+  gl.useProgram(program);
+  twgl.setBuffersAndAttributes(gl, program, buffer);
+  twgl.setUniforms(program, {
+    tex1: fromFb.attachments[0],
+    direction: direction,
+  });
+  twgl.drawBufferInfo(gl, buffer, gl.TRIANGLES);
+};
+
+let clearGl = (gl: WebGLRenderingContext) => {
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+};
+
+let loadSizedBuffer = (
+  gl: WebGLRenderingContext,
+  fbRef: Atom<any>,
+  w: number,
+  h: number
+) => {
+  let b = fbRef.deref();
+  if (b && b.size && b.size[0] === w && b.size[1] === h) {
+    return b.buffer;
+  }
+  let f = twgl.createFramebufferInfo(gl);
+  fbRef.reset({
+    buffer: f,
+    size: [w, h],
+  });
+  return f;
 };
