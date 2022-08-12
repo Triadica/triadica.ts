@@ -14,9 +14,13 @@ import {
 import {
   atomViewerPosition,
   atomViewerUpward,
+  moveViewerBy,
   newLookatPoint,
+  rotateGlanceBy,
+  spinGlanceBy,
 } from "./perspective.mjs";
 import * as twgl from "twgl.js";
+import { V2 } from "./touch-control.js";
 
 export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
   canvas.style.width = `${window.innerWidth}`;
@@ -292,4 +296,45 @@ let loadSizedBuffer = (
     size: [w, h],
   });
   return f;
+};
+
+export let onControlEvent = (elapsed: number, states: any, delta: any) => {
+  let lMove = states.leftMove.map(refineStrength);
+  let rMove = states.rightMove.map(refineStrength);
+  let rDelta = delta.rightMove;
+  let lDelta = delta.leftMove;
+  let leftA = states.leftA;
+  let rightA = states.rightA || states.shift;
+  let rightB = states.rightB;
+  let leftB = states.leftB;
+  if (lMove[1] !== 0) {
+    moveViewerBy(0, 0, -2 * elapsed * lMove[1]);
+  }
+  if (lMove[0] !== 0) {
+    rotateGlanceBy(-0.05 * elapsed * lMove[0], 0);
+  }
+  if (!rightA && !isZero(rMove)) {
+    moveViewerBy(2 * elapsed * rMove[0], 2 * elapsed * rMove[1], 0);
+  }
+  if (rightA && rMove[1] !== 0) {
+    rotateGlanceBy(0, 0.05 * elapsed * rMove[1]);
+  }
+  if (rightA && rMove[0] !== 0) {
+    spinGlanceBy(-0.05 * elapsed * rMove[0]);
+  }
+  if (!isZero(lMove) || !isZero(rMove)) {
+    paintCanvas();
+  }
+};
+
+let isZero = (v: V2) => {
+  return v[0] === 0 && v[1] === 0;
+};
+
+// defn refine-strength (x)
+//   &* x $ sqrt
+//     js/Math.abs $ &* x 0.02
+
+let refineStrength = (x: number) => {
+  return x * Math.sqrt(Math.abs(x * 0.02));
 };

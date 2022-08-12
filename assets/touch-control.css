@@ -1,0 +1,92 @@
+
+
+/* touch control styles  */
+
+body {
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
+  touch-action: none;
+  overflow: hidden;
+}
+
+/* .touch-control { */
+/* } */
+
+/* relative containers  */
+.left-group {
+  position: fixed;
+  left: 24px;
+  bottom: 360px;
+}
+.right-group {
+  position: fixed;
+  right: 24px;
+  bottom: 360px;
+}
+
+.touch-control .circle-button {
+  width: 60px;
+  height: 60px;
+  /*background-color: hsla(350, 100%, 90%, 0.6);*/
+  border: 1px solid hsla(350, 100%, 80%, 0.3);
+  border-radius: 24px;
+  position: absolute;
+  transform: rotate(45deg);
+}
+
+.touch-control .circle-button.left-a {
+  bottom: 100px;
+  left: 8px;
+}
+.touch-control .circle-button.left-b {
+  bottom: 20px;
+  left: 8px;
+}
+
+.touch-control .circle-button.right-a {
+  bottom: 100px;
+  right: 8px;
+}
+.touch-control .circle-button.right-b {
+  bottom: 20px;
+  right: 8px;
+}
+
+
+.touch-control .hand-button {
+  position: absolute;
+  height: 100%;
+
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  /*background-color: hsla(0, 100%, 100%, 0.6);*/
+  border: 1px solid hsla(0, 100%, 80%, 0.06);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.touch-control .hand-center {
+  width: 60px;
+  height: 60px;
+  transform: rotate(45deg);
+  border: 1px solid hsla(0, 100%, 80%, 0.3);
+  pointer-events: none;
+  border-radius: 4px;
+}
+.touch-control .left-hand {
+  left: 104px;
+  bottom: -160px;
+}
+.touch-control .right-hand {
+  right: 104px;
+  bottom: -160px;
+}
+
+.left-hand .hand-center {
+  border-width: 2px 1px 1px 1px;
+}
+.right-hand .hand-center {
+  border-width: 1px 1px 1px 2px;
+}
