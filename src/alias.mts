@@ -17,7 +17,7 @@ export let object = (options: {
   points?: V3[];
   indices?: number[];
   attributes?: { [key: string]: number[][] };
-  groupedAttributes?: any[];
+  packedAttrs?: any[];
   getUniforms?: () => any;
 }) => {
   let arrays: any = {};
@@ -42,13 +42,10 @@ export let object = (options: {
   arrays = ret;
 
   // check grouped attributes
-  if (
-    options.groupedAttributes != null &&
-    options.groupedAttributes.length > 0
-  ) {
-    let g0 = peekGroupedAttrs(options.groupedAttributes);
+  if (options.packedAttrs != null && options.packedAttrs.length > 0) {
+    let g0 = peekPackedAttrs(options.packedAttrs);
     let names = Object.keys(g0);
-    let size = countRecursive(options.groupedAttributes);
+    let size = countRecursive(options.packedAttrs);
     let mutableLocalArrayCounter = 0;
     let collect = (info: Record<string, any>) => {
       let idx = mutableLocalArrayCounter;
@@ -84,7 +81,7 @@ export let object = (options: {
         null
       );
     }
-    buildGroupedAttrs(options.groupedAttributes, collect);
+    buildPackedAttrs(options.packedAttrs, collect);
 
     Object.assign(arrays, ret);
   }
@@ -129,11 +126,11 @@ let createAttributeArray = (points: V3[]) => {
   }
 };
 
-let peekGroupedAttrs = (groupedAttrs: any): any => {
-  if (Array.isArray(groupedAttrs)) {
-    return peekGroupedAttrs(groupedAttrs[0]);
+let peekPackedAttrs = (packedAttrs: any): any => {
+  if (Array.isArray(packedAttrs)) {
+    return peekPackedAttrs(packedAttrs[0]);
   } else {
-    return groupedAttrs;
+    return packedAttrs;
   }
 };
 
@@ -145,10 +142,10 @@ let countRecursive = (xs: any[]): number => {
   }
 };
 
-let buildGroupedAttrs = (data: any[], collect: (info: any) => void) => {
+let buildPackedAttrs = (data: any[], collect: (info: any) => void) => {
   if (Array.isArray(data)) {
     data.forEach((x) => {
-      buildGroupedAttrs(x, collect);
+      buildPackedAttrs(x, collect);
     });
   } else {
     collect(data);
