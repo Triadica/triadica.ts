@@ -2,11 +2,13 @@ import {
   backConeScale,
   cachedBuildProgram,
   dpr,
+  isMobile,
   isPostEffect,
 } from "./config.mjs";
 import { Atom } from "./data.mjs";
 import {
   atomGlContext,
+  atomMouseHoldingPaths,
   atomObjectsBuffer,
   atomObjectsTree,
   atomProxiedDispatch,
@@ -14,9 +16,15 @@ import {
 import {
   atomViewerPosition,
   atomViewerUpward,
+  moveViewerBy,
   newLookatPoint,
+  rotateGlanceBy,
+  spinGlanceBy,
+  transform3d,
 } from "./perspective.mjs";
 import * as twgl from "twgl.js";
+import { V2 } from "./touch-control.js";
+import { cDistance } from "./math.mjs";
 
 export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
   canvas.style.width = `${window.innerWidth}`;
@@ -190,8 +198,19 @@ export let paintCanvas = () => {
   }
 };
 
+// defn setup-mouse-events! (canvas)
+//   set! (.-onclick canvas) handle-screen-click!
+//   set! (.-onpointerdown canvas) handle-screen-mousedown!
+//   set! (.-onpointermove canvas) handle-screen-mousemove!
+//   set! (.-onpointerup canvas) handle-screen-mouseup!
+//   set! (.-onpointerleave canvas) handle-screen-mouseup!
+
 export let setupMouseEvents = (canvas: HTMLCanvasElement) => {
-  // TODO
+  canvas.onclick = handleScreenClick;
+  canvas.onpointerdown = handleScreenMousedown;
+  canvas.onpointermove = handleScreenMousemove;
+  canvas.onpointerup = handleScreenMouseup;
+  canvas.onpointerleave = handleScreenMouseup;
 };
 
 export let traverseTree = (
@@ -292,4 +311,186 @@ let loadSizedBuffer = (
     size: [w, h],
   });
   return f;
+};
+
+export let onControlEvent = (elapsed: number, states: any, delta: any) => {
+  let lMove = states.leftMove.map(refineStrength);
+  let rMove = states.rightMove.map(refineStrength);
+  let rDelta = delta.rightMove;
+  let lDelta = delta.leftMove;
+  let leftA = states.leftA;
+  let rightA = states.rightA || states.shift;
+  let rightB = states.rightB;
+  let leftB = states.leftB;
+  if (lMove[1] !== 0) {
+    moveViewerBy(0, 0, -2 * elapsed * lMove[1]);
+  }
+  if (lMove[0] !== 0) {
+    rotateGlanceBy(-0.05 * elapsed * lMove[0], 0);
+  }
+  if (!rightA && !isZero(rMove)) {
+    moveViewerBy(2 * elapsed * rMove[0], 2 * elapsed * rMove[1], 0);
+  }
+  if (rightA && rMove[1] !== 0) {
+    rotateGlanceBy(0, 0.05 * elapsed * rMove[1]);
+  }
+  if (rightA && rMove[0] !== 0) {
+    spinGlanceBy(-0.05 * elapsed * rMove[0]);
+  }
+  if (!isZero(lMove) || !isZero(rMove)) {
+    paintCanvas();
+  }
+};
+
+let isZero = (v: V2) => {
+  return v[0] === 0 && v[1] === 0;
+};
+
+let refineStrength = (x: number) => {
+  return x * Math.sqrt(Math.abs(x * 0.02));
+};
+
+let handleScreenClick = (event: MouseEvent) => {
+  let x = event.clientX - window.innerWidth * 0.5;
+  let y = -(event.clientY - window.innerHeight * 0.5);
+  let scaleRadio = 0.001 * 0.5 * window.innerWidth;
+  let touchDeviation = isMobile ? 16 : 4;
+  let hitTargetsBuffer = new Atom([]);
+  traverseTree(atomObjectsTree.deref(), [], (obj: any, coord: number[]) => {
+    if (obj.hitRegion != null) {
+      let region = obj.hitRegion;
+      if (region.onHit != null) {
+        let onHit = region.onHit;
+        let mappedPosition = transform3d(region.position);
+        let screenPosition = mappedPosition.map((p: number) => {
+          return p * scaleRadio;
+        });
+        let r = mappedPosition[2];
+        let mappedRadius =
+          scaleRadio * region.radius((backConeScale + 1) / (r + backConeScale));
+        let distance = cDistance(
+          [screenPosition[0], screenPosition[1]],
+          [x, y]
+        );
+        if (
+          distance <= touchDeviation + mappedRadius &&
+          r > -0.8 * backConeScale
+        ) {
+          hitTargetsBuffer.deref().push([r, onHit, null]);
+        }
+      }
+    }
+  });
+  if (hitTargetsBuffer.deref().length > 0) {
+    let nearest = findNearest(null, null, null, hitTargetsBuffer.deref());
+    let onHit = nearest[0];
+    onHit(event, atomProxiedDispatch.deref());
+  }
+};
+
+let handleScreenMousedown = (event: MouseEvent) => {
+  let x = event.clientX - 0.5 * window.innerWidth;
+  let y = -(event.clientY - 0.5 * window.innerHeight);
+  let scaleRadio = 0.001 * 0.5 * window.innerWidth;
+  let touchDeviation = isMobile ? 16 : 4;
+  let hitTargetsBuffer = new Atom([]);
+  traverseTree(atomObjectsTree.deref(), [], (obj: any, coord: number[]) => {
+    if (obj.hitRegion != null) {
+      let region = obj.hitRegion;
+      if (region.onMousedown != null) {
+        let onMousedown = region.onMousedown;
+        let mappedPosition = transform3d(region.position);
+        let screenPosition = mappedPosition.map((p: number) => {
+          return p * scaleRadio;
+        });
+        let r = mappedPosition[2];
+        let mappedRadius =
+          scaleRadio * region.radius((backConeScale + 1) / (r + backConeScale));
+        let distance = cDistance(
+          [screenPosition[0], screenPosition[1]],
+          [x, y]
+        );
+        if (
+          distance <= touchDeviation + mappedRadius &&
+          r > -0.8 * backConeScale
+        ) {
+          hitTargetsBuffer.deref().push([r, onMousedown, coord]);
+        }
+      }
+    }
+  });
+  if (hitTargetsBuffer.deref().length > 0) {
+    let nearest = findNearest(null, null, null, hitTargetsBuffer.deref());
+    let onMousedown = nearest[0];
+    let coord = nearest[1];
+    onMousedown(event, atomProxiedDispatch.deref());
+    atomMouseHoldingPaths.deref().push(coord as any); // TODO
+  }
+};
+
+let handleScreenMousemove = (event: MouseEvent) => {
+  let paths = atomMouseHoldingPaths.deref();
+  if (paths.length > 0) {
+    for (let p of paths) {
+      let node = loadTreeNode(atomObjectsTree.deref(), p);
+      if (node.type === "object") {
+        let onMove = node.hitRegion?.onMousemove;
+        if (onMove != null) {
+          onMove(event, atomProxiedDispatch.deref());
+        }
+      }
+    }
+  }
+};
+
+let handleScreenMouseup = (event: MouseEvent) => {
+  let paths = atomMouseHoldingPaths.deref();
+  if (paths.length > 0) {
+    for (let p of paths) {
+      let node = loadTreeNode(atomObjectsTree.deref(), p);
+      if (node.type === "object") {
+        let onUp = node.hitRegion?.onMouseup;
+        if (onUp != null) {
+          onUp(event, atomProxiedDispatch.deref());
+        }
+      }
+    }
+  }
+};
+
+let findNearest = (
+  r: number,
+  prev: (event: MouseEvent, d: any) => void,
+  coord: number[],
+  xs: [number, (event: MouseEvent, d: any) => void, number[]][]
+): [(event: MouseEvent, d: any) => void, number[]] => {
+  if (xs.length === 0) {
+    if (prev != null) {
+      return [prev, coord];
+    } else {
+      return null;
+    }
+  }
+  let x0 = xs[0];
+  let r0 = x0[0];
+  let t0 = x0[1];
+  let c0 = x0[2];
+  if (prev == null) {
+    return findNearest(r0, t0, c0, xs.slice(1));
+  } else {
+    if (r0 < r) {
+      return findNearest(r0, t0, c0, xs.slice(1));
+    } else {
+      return findNearest(r, prev, coord, xs.slice(1));
+    }
+  }
+};
+
+let loadTreeNode = (tree: any, path: number[]): any => {
+  if (path.length === 0) {
+    return tree;
+  } else {
+    let children = tree.children;
+    return loadTreeNode(children[path[0]], path.slice(1));
+  }
 };

@@ -50,3 +50,5 @@ export let backConeScale = 0.5;
 export let halfPi = 0.5 * Math.PI;
 
 export let isPostEffect = false; // TODO
+
+export let isMobile = false; // TODO

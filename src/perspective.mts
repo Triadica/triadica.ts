@@ -76,7 +76,7 @@ export let toViewerAxis = (x: number, y: number, z: number) => {
   );
 };
 
-export let transform3d = (p0: V3) => {
+export let transform3d = (p0: V3): V3 => {
   let point = vSub(p0, atomViewerPosition.deref());
   let lookDistance = newLookatPoint();
   let upward = atomViewerUpward.deref();

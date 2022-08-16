@@ -1,5 +1,6 @@
 
 @import url("@quamolit/touch-control/style/touch-control.css");
+@import url("./touch-control.css");
 
 body {
   margin: 0;

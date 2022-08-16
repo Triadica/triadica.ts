@@ -1,3 +1,4 @@
+import { V2 } from "./touch-control.js";
 import { Atom } from "./data.mjs";
 
 export let atomGlContext = new Atom<WebGLRenderingContext>(null);
@@ -9,3 +10,5 @@ export let atomObjectsTree = new Atom<any>(null);
 export let atomProxiedDispatch = new Atom<any>(null);
 
 export let atomObjectsBuffer = new Atom<any[]>([]);
+
+export let atomMouseHoldingPaths = new Atom<V2[]>([]);

@@ -3,6 +3,7 @@ import { Atom } from "./data.mjs";
 import { atomGlContext } from "./global.mjs";
 import {
   loadObjects,
+  onControlEvent,
   paintCanvas,
   resetCanvasSize,
   setupMouseEvents,
@@ -10,6 +11,11 @@ import {
 import * as twgl from "twgl.js";
 import produce from "immer";
 import { atomDirtyUniforms, compContainer } from "./app/container.mjs";
+import {
+  renderControl,
+  replaceControlLoop,
+  startControlLoop,
+} from "./touch-control";
 
 let canvas = document.querySelector("canvas");
 
@@ -33,6 +39,8 @@ export let main = () => {
 
   // TODO render control, from touch-control
   // start-control-loop! 10 on-control-event
+  renderControl();
+  startControlLoop(10, onControlEvent);
 
   atomStore.addWatch("change", (prev, store) => {
     renderApp();
@@ -102,6 +110,7 @@ export let reload = () => {
     renderApp();
   });
   // TODO replace-control-loop
+  replaceControlLoop(10, onControlEvent);
   setupMouseEvents(canvas);
   window.onresize = (event) => {
     resetCanvasSize(canvas);
