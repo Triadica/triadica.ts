@@ -1,10 +1,10 @@
 import { Atom } from "./data.mjs";
 
 class MarkupElement {
-  props: any;
-  events: any;
+  props: Record<string, any>;
+  events: Record<string, any>;
   children: MarkupElement[];
-  constructor(props: any, events: any, children: MarkupElement[]) {
+  constructor(props: Record<string, any>, events: Record<string, any>, children: MarkupElement[]) {
     this.props = props;
     this.events = events;
     this.children = children;
@@ -198,6 +198,17 @@ export let replaceControlLoop = (duration: number, f: (elapsed: number, states: 
   startControlLoop(duration, f);
 };
 
+/** control events data emitted from touches */
+export interface ControlStates {
+  leftMove: V2;
+  rightMove: V2;
+  leftA: boolean;
+  leftB: boolean;
+  rightA: boolean;
+  rightB: boolean;
+  shift: boolean;
+}
+
 let rightEvents = (() => {
   let onEnter = (event: PointerEvent) => {
     atomRightOrigin.reset([(event as any).layerX, (event as any).layerY]);
@@ -239,7 +250,7 @@ let rightEvents = (() => {
   };
 })();
 
-export let startControlLoop = (duration: number, f: (elapsed: number, states: any, g: any) => void) => {
+export let startControlLoop = (duration: number, f: (elapsed: number, states: ControlStates, g: any) => void) => {
   let now = performance.now();
   let elapsed = (now - atomLastTick.deref()) / 1000;
   let shift = atomShiftListener.deref();

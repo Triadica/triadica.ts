@@ -3,19 +3,20 @@ import { Atom } from "./data.mjs";
 import { atomGlContext, atomMouseHoldingPaths, atomObjectsBuffer, atomObjectsTree, atomProxiedDispatch } from "./global.mjs";
 import { atomViewerPosition, atomViewerUpward, moveViewerBy, newLookatPoint, rotateGlanceBy, spinGlanceBy, transform3d } from "./perspective.mjs";
 import * as twgl from "twgl.js";
-import { V2 } from "./touch-control.js";
+import { ControlStates, V2 } from "./touch-control.js";
 import { cDistance } from "./math.mjs";
 import effectXVert from "../shaders/effect-x.vert";
 import effectXFrag from "../shaders/effect-x.frag";
 import effectMixVert from "../shaders/effect-mix.vert";
 import effectMixFrag from "../shaders/effect-mix.frag";
+import { TriadicaElement, TriadicaObjectData } from "./alias.mjs";
 
 export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
   canvas.style.width = `${window.innerWidth}`;
   canvas.style.height = `${window.innerHeight}`;
 };
 
-export let loadObjects = (tree: any, dispatch: (op: string, data: any) => void) => {
+export let loadObjects = (tree: TriadicaElement, dispatch: (op: string, data: any) => void) => {
   let gl = atomGlContext.deref();
   atomObjectsTree.reset(tree);
   atomProxiedDispatch.reset(dispatch);
@@ -72,7 +73,7 @@ export let paintCanvas = () => {
     let bufferInfo = object.buffer;
     let currentUniforms = uniforms;
     if (object.getUniforms) {
-      currentUniforms = object.getUniforms();
+      currentUniforms = object.getUniforms() as any;
       Object.assign(currentUniforms, uniforms);
     }
     gl.useProgram(programInfo.program);
@@ -144,7 +145,7 @@ export let setupMouseEvents = (canvas: HTMLCanvasElement) => {
   canvas.onpointerleave = handleScreenMouseup;
 };
 
-export let traverseTree = (tree: any, coord: number[], cb: (obj: any, coord: any) => void) => {
+export let traverseTree = (tree: TriadicaElement, coord: number[], cb: (obj: TriadicaObjectData, coord: number[]) => void) => {
   if (tree != null) {
     switch (tree.type) {
       case "object":
@@ -152,19 +153,19 @@ export let traverseTree = (tree: any, coord: number[], cb: (obj: any, coord: any
         break;
       case "group":
         if (tree.children != null) {
-          tree.children.map((child: any, idx: number) => {
+          tree.children.map((child: TriadicaElement, idx: number) => {
             traverseTree(child, [...coord, idx], cb);
           });
         }
         break;
       default:
-        console.warn(`unknown element type: ${tree.type}`);
+        console.warn(`unknown element type: ${tree}`);
         break;
     }
   }
 };
 
-let createAttributeArray = (points: any[]) => {
+let createAttributeArray = (points: number[] | number[][]): ArrayBufferView => {
   let p0 = points[0];
   if (Array.isArray(p0)) {
     let pps = points.flat();
@@ -188,7 +189,14 @@ let createAttributeArray = (points: any[]) => {
   return twgl.primitives.createAugmentedTypedArray(1, points.length, null);
 };
 
-let blurAtDirection = (gl: WebGLRenderingContext, fromFb: twgl.FramebufferInfo, toFb: twgl.FramebufferInfo, direction: number, program: any, buffer: any) => {
+let blurAtDirection = (
+  gl: WebGLRenderingContext,
+  fromFb: twgl.FramebufferInfo,
+  toFb: twgl.FramebufferInfo,
+  direction: number,
+  program: twgl.ProgramInfo,
+  buffer: twgl.BufferInfo
+) => {
   twgl.resizeFramebufferInfo(gl, toFb);
   twgl.resizeCanvasToDisplaySize(gl.canvas, dpr);
   twgl.bindFramebufferInfo(gl, toFb);
@@ -207,7 +215,15 @@ let clearGl = (gl: WebGLRenderingContext) => {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
 
-let loadSizedBuffer = (gl: WebGLRenderingContext, fbRef: Atom<any>, w: number, h: number) => {
+let loadSizedBuffer = (
+  gl: WebGLRenderingContext,
+  fbRef: Atom<{
+    buffer: twgl.FramebufferInfo;
+    size: V2;
+  }>,
+  w: number,
+  h: number
+): twgl.FramebufferInfo => {
   let b = fbRef.deref();
   if (b && b.size && b.size[0] === w && b.size[1] === h) {
     return b.buffer;
@@ -220,9 +236,9 @@ let loadSizedBuffer = (gl: WebGLRenderingContext, fbRef: Atom<any>, w: number, h
   return f;
 };
 
-export let onControlEvent = (elapsed: number, states: any, delta: any) => {
-  let lMove = states.leftMove.map(refineStrength);
-  let rMove = states.rightMove.map(refineStrength);
+export let onControlEvent = (elapsed: number, states: ControlStates, delta: ControlStates) => {
+  let lMove = states.leftMove.map(refineStrength) as V2;
+  let rMove = states.rightMove.map(refineStrength) as V2;
   let rDelta = delta.rightMove;
   let lDelta = delta.leftMove;
   let leftA = states.leftA;
@@ -249,11 +265,11 @@ export let onControlEvent = (elapsed: number, states: any, delta: any) => {
   }
 };
 
-let isZero = (v: V2) => {
+let isZero = (v: V2): boolean => {
   return v[0] === 0 && v[1] === 0;
 };
 
-let refineStrength = (x: number) => {
+let refineStrength = (x: number): number => {
   return x * Math.sqrt(Math.abs(x * 0.02));
 };
 
@@ -263,7 +279,7 @@ let handleScreenClick = (event: MouseEvent) => {
   let scaleRadio = 0.001 * 0.5 * window.innerWidth;
   let touchDeviation = isMobile ? 16 : 4;
   let hitTargetsBuffer = new Atom([]);
-  traverseTree(atomObjectsTree.deref(), [], (obj: any, coord: number[]) => {
+  traverseTree(atomObjectsTree.deref(), [], (obj: TriadicaObjectData, coord: number[]) => {
     if (obj.hitRegion != null) {
       let region = obj.hitRegion;
       if (region.onHit != null) {
@@ -273,7 +289,7 @@ let handleScreenClick = (event: MouseEvent) => {
           return p * scaleRadio;
         });
         let r = mappedPosition[2];
-        let mappedRadius = scaleRadio * region.radius((backConeScale + 1) / (r + backConeScale));
+        let mappedRadius = scaleRadio * region.radius * ((backConeScale + 1) / (r + backConeScale));
         let distance = cDistance([screenPosition[0], screenPosition[1]], [x, y]);
         if (distance <= touchDeviation + mappedRadius && r > -0.8 * backConeScale) {
           hitTargetsBuffer.deref().push([r, onHit, null]);
@@ -294,7 +310,7 @@ let handleScreenMousedown = (event: MouseEvent) => {
   let scaleRadio = 0.001 * 0.5 * window.innerWidth;
   let touchDeviation = isMobile ? 16 : 4;
   let hitTargetsBuffer = new Atom([]);
-  traverseTree(atomObjectsTree.deref(), [], (obj: any, coord: number[]) => {
+  traverseTree(atomObjectsTree.deref(), [], (obj: TriadicaObjectData, coord: number[]) => {
     if (obj.hitRegion != null) {
       let region = obj.hitRegion;
       if (region.onMousedown != null) {
@@ -304,7 +320,7 @@ let handleScreenMousedown = (event: MouseEvent) => {
           return p * scaleRadio;
         });
         let r = mappedPosition[2];
-        let mappedRadius = scaleRadio * region.radius((backConeScale + 1) / (r + backConeScale));
+        let mappedRadius = scaleRadio * region.radius * ((backConeScale + 1) / (r + backConeScale));
         let distance = cDistance([screenPosition[0], screenPosition[1]], [x, y]);
         if (distance <= touchDeviation + mappedRadius && r > -0.8 * backConeScale) {
           hitTargetsBuffer.deref().push([r, onMousedown, coord]);
@@ -379,11 +395,14 @@ let findNearest = (
   }
 };
 
-let loadTreeNode = (tree: any, path: number[]): any => {
+let loadTreeNode = (tree: TriadicaElement, path: number[]): TriadicaElement => {
   if (path.length === 0) {
     return tree;
-  } else {
+  } else if (tree.type === "group") {
     let children = tree.children;
     return loadTreeNode(children[path[0]], path.slice(1));
+  } else {
+    console.error("loadTreeNode: invalid tree", tree);
+    throw new Error("Unexpected tree node");
   }
 };

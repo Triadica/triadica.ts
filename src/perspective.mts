@@ -15,7 +15,7 @@ export let moveViewerBy = (x0: number, y0: number, z0: number) => {
   atomViewerPosition.reset(vAdd(position, dv));
 };
 
-export let newLookatPoint = () => {
+export let newLookatPoint = (): V3 => {
   return vScale(atomViewerForward.deref(), 600);
 };
 
@@ -58,7 +58,7 @@ export let spinGlanceBy = (v: number) => {
 //           v-scale upward y
 //         v-scale forward $ negate z
 
-export let toViewerAxis = (x: number, y: number, z: number) => {
+export let toViewerAxis = (x: number, y: number, z: number): V3 => {
   let forward = atomViewerForward.deref();
   let upward = atomViewerUpward.deref();
   let rightward = vCross(upward, forward);
@@ -80,6 +80,6 @@ export let transform3d = (p0: V3): V3 => {
   return [xp, yp, zp];
 };
 
-let vSquare = (v: V3) => {
+let vSquare = (v: V3): number => {
   return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
 };
