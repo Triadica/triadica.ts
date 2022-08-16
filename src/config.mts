@@ -2,7 +2,12 @@ import { Atom } from "./data.mjs";
 import * as twgl from "twgl.js";
 import mobile from "is-mobile";
 
-export let isDev = true; // TODO
+export let getEnv = (name: string, defaultValue: string): string => {
+  let params = new URLSearchParams(location.search.slice(1));
+  return params.get(name) || defaultValue;
+};
+
+export let isDev = getEnv("mode", "release") === "dev";
 
 let atomShaderPrograms = new Atom<Record<string, twgl.ProgramInfo>>({});
 
@@ -40,11 +45,6 @@ export let dpr = window.devicePixelRatio;
 export let backConeScale = 0.5;
 
 export let halfPi = 0.5 * Math.PI;
-
-export let getEnv = (name: string, defaultValue: string): string => {
-  let params = new URLSearchParams(location.search.slice(1));
-  return params.get(name) || defaultValue;
-};
 
 export let isPostEffect = getEnv("effect", "off") === "on";
 

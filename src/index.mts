@@ -78,11 +78,10 @@ export let paintCanvas = () => {
     }
     gl.useProgram(programInfo.program);
     twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
-    console.log("currentUniforms", currentUniforms);
+    // console.log("currentUniforms", currentUniforms);
     twgl.setUniforms(programInfo, currentUniforms);
     switch (object.drawMode) {
       case "triangles":
-        console.info("triangles");
         twgl.drawBufferInfo(gl, bufferInfo, gl.TRIANGLES);
         break;
       case "lines":
@@ -103,6 +102,7 @@ export let paintCanvas = () => {
   if (isPostEffect) {
     let effectXProgram = cachedBuildProgram(gl, effectXVert, effectXFrag);
     let mixProgram = cachedBuildProgram(gl, effectMixVert, effectMixFrag);
+
     let uvSettings = {
       position: createAttributeArray([
         [-1, -1],
@@ -114,9 +114,10 @@ export let paintCanvas = () => {
       ]),
     };
     let effectXBufferInfo = twgl.createBufferInfoFromArrays(gl, uvSettings);
-
     let mixBufferInfo = twgl.createBufferInfoFromArrays(gl, uvSettings);
+
     gl.disable(gl.DEPTH_TEST);
+
     blurAtDirection(gl, drawFb, effectXFb, 1, effectXProgram, effectXBufferInfo);
     blurAtDirection(gl, effectXFb, effectYFb, 0, effectXProgram, effectXBufferInfo);
     blurAtDirection(gl, effectYFb, effectXFb, 1, effectXProgram, effectXBufferInfo);
@@ -130,18 +131,11 @@ export let paintCanvas = () => {
     twgl.setBuffersAndAttributes(gl, mixProgram, mixBufferInfo);
     twgl.setUniforms(mixProgram, {
       draw_tex: drawFb.attachments[0],
-      effect_x_tex: effectXFb.attachments[0],
+      effect_x_tex: effectYFb.attachments[0],
     });
     twgl.drawBufferInfo(gl, mixBufferInfo, gl.TRIANGLES);
   }
 };
-
-// defn setup-mouse-events! (canvas)
-//   set! (.-onclick canvas) handle-screen-click!
-//   set! (.-onpointerdown canvas) handle-screen-mousedown!
-//   set! (.-onpointermove canvas) handle-screen-mousemove!
-//   set! (.-onpointerup canvas) handle-screen-mouseup!
-//   set! (.-onpointerleave canvas) handle-screen-mouseup!
 
 export let setupMouseEvents = (canvas: HTMLCanvasElement) => {
   canvas.onclick = handleScreenClick;
@@ -191,7 +185,7 @@ let createAttributeArray = (points: any[]) => {
 
     return positionArray;
   }
-  console.error('"unknown attributes data:' + points);
+  console.error("unknown attributes data:", points);
   return twgl.primitives.createAugmentedTypedArray(1, points.length, null);
 };
 

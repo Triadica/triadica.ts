@@ -164,7 +164,7 @@ export let renderControl = () => {
       div({ className: "right-b circle-button" }, connectState("rightB"))
     )
   );
-  console.log(panel);
+  // console.log(panel);
   let dom = renderDom(panel, document.body);
   atomContainer.reset(dom);
 };
@@ -279,5 +279,3 @@ let tryFullscreen = () => {
     document.documentElement.requestFullscreen();
   }
 };
-
-let zero = [0, 0];
