@@ -91,11 +91,7 @@ let connectState = (field: string) => {
   };
 };
 
-let div = (
-  props: any,
-  events: Record<string, any>,
-  ...children: MarkupElement[]
-) => {
+let div = (props: any, events: Record<string, any>, ...children: MarkupElement[]) => {
   return new MarkupElement(props, events, children);
 };
 
@@ -135,10 +131,7 @@ let leftEvents = (() => {
     mouseleave: onLeave,
     pointerup: onLeave,
     pointermove: (event: PointerEvent) => {
-      let move: V2 = [
-        (event as any).layerX - atomLeftOrigin.deref()[0],
-        atomLeftOrigin.deref()[1] - (event as any).layerY,
-      ];
+      let move: V2 = [(event as any).layerX - atomLeftOrigin.deref()[0], atomLeftOrigin.deref()[1] - (event as any).layerY];
       atomControlStates.swap((controlStates) => {
         return {
           ...controlStates,
@@ -159,29 +152,21 @@ export let renderControl = () => {
     div(
       { className: "left-group" },
       {},
-      div(
-        { className: "left-hand hand-button" },
-        leftEvents,
-        div({ className: "hand-center" }, {})
-      ),
+      div({ className: "left-hand hand-button" }, leftEvents, div({ className: "hand-center" }, {})),
       div({ className: "left-a circle-button" }, connectState("leftA")),
       div({ className: "left-b circle-button" }, connectState("leftB"))
     ),
     div(
       { className: "right-group" },
       {},
-      div(
-        { className: "right-hand hand-button" },
-        rightEvents,
-        div({ className: "hand-center" }, {})
-      ),
+      div({ className: "right-hand hand-button" }, rightEvents, div({ className: "hand-center" }, {})),
       div({ className: "right-a circle-button" }, connectState("rightA")),
       div({ className: "right-b circle-button" }, connectState("rightB"))
     )
   );
   console.log(panel);
   let dom = renderDom(panel, document.body);
-  // atomContainer.reset(dom); // TODO
+  atomContainer.reset(dom);
 };
 
 let renderDom = (el: MarkupElement, parent: HTMLElement) => {
@@ -202,14 +187,13 @@ let renderDom = (el: MarkupElement, parent: HTMLElement) => {
     renderDom(child, div);
   }
   parent.appendChild(div);
+
+  return div;
 };
 
 // defn replace-control-loop! (duration f) (clear-control-loop!) (start-control-loop! duration f)
 
-export let replaceControlLoop = (
-  duration: number,
-  f: (elapsed: number, states: any, g: any) => void
-) => {
+export let replaceControlLoop = (duration: number, f: (elapsed: number, states: any, g: any) => void) => {
   clearControlLoop();
   startControlLoop(duration, f);
 };
@@ -244,10 +228,7 @@ let rightEvents = (() => {
     mouseenter: onEnter,
     mouseleave: onLeave,
     pointermove: (event: PointerEvent) => {
-      let move: V2 = [
-        (event as any).layerX - atomRightOrigin.deref()[0],
-        atomRightOrigin.deref()[1] - (event as any).layerY,
-      ];
+      let move: V2 = [(event as any).layerX - atomRightOrigin.deref()[0], atomRightOrigin.deref()[1] - (event as any).layerY];
       atomControlStates.swap((controlStates) => {
         return {
           ...controlStates,
@@ -258,10 +239,7 @@ let rightEvents = (() => {
   };
 })();
 
-export let startControlLoop = (
-  duration: number,
-  f: (elapsed: number, states: any, g: any) => void
-) => {
+export let startControlLoop = (duration: number, f: (elapsed: number, states: any, g: any) => void) => {
   let now = performance.now();
   let elapsed = (now - atomLastTick.deref()) / 1000;
   let shift = atomShiftListener.deref();
@@ -273,14 +251,8 @@ export let startControlLoop = (
       shift: shift,
     },
     {
-      leftMove: complex_minus(
-        states.leftMove,
-        atomPrevControlStates.deref().leftMove
-      ),
-      rightMove: complex_minus(
-        states.rightMove,
-        atomPrevControlStates.deref().rightMove
-      ),
+      leftMove: complex_minus(states.leftMove, atomPrevControlStates.deref().leftMove),
+      rightMove: complex_minus(states.rightMove, atomPrevControlStates.deref().rightMove),
     }
   );
   atomLastTick.reset(now);

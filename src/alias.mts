@@ -30,10 +30,7 @@ export let object = (options: {
   if (options.indices != null) {
     ret.indices = options.indices;
   }
-  if (
-    options.attributes != null &&
-    Object.keys(options.attributes).length > 0
-  ) {
+  if (options.attributes != null && Object.keys(options.attributes).length > 0) {
     for (let key in options.attributes) {
       ret[key] = createAttributeArray(options.attributes[key] as any);
     }
@@ -75,11 +72,7 @@ export let object = (options: {
       }
     };
     for (let name in names) {
-      ret[name] = twgl.primitives.createAugmentedTypedArray(
-        Array.isArray(g0[name]) ? g0[name].length : 1,
-        size,
-        null
-      );
+      ret[name] = twgl.primitives.createAugmentedTypedArray(Array.isArray(g0[name]) ? g0[name].length : 1, size, null);
     }
     buildPackedAttrs(options.packedAttrs, collect);
 
@@ -100,22 +93,14 @@ let createAttributeArray = (points: V3[]) => {
   if (Array.isArray(p0)) {
     let pps = points.flat(); // only flat once
     let num = p0.length;
-    let positionArray = twgl.primitives.createAugmentedTypedArray(
-      num,
-      points.length,
-      Float32Array
-    );
+    let positionArray = twgl.primitives.createAugmentedTypedArray(num, points.length, Float32Array);
     for (let i = 0; i < pps.length; i++) {
       // TODO type issue
       (positionArray as any)[i] = pps[i];
     }
     return positionArray;
   } else if (typeof p0 === "number") {
-    let positionArray = twgl.primitives.createAugmentedTypedArray(
-      1,
-      points.length,
-      Float32Array
-    );
+    let positionArray = twgl.primitives.createAugmentedTypedArray(1, points.length, Float32Array);
     for (let idx in points) {
       // TODO type issue
       (positionArray as any)[idx] = points[idx];

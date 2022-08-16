@@ -1,40 +1,21 @@
-import {
-  backConeScale,
-  cachedBuildProgram,
-  dpr,
-  isMobile,
-  isPostEffect,
-} from "./config.mjs";
+import { backConeScale, cachedBuildProgram, dpr, isMobile, isPostEffect } from "./config.mjs";
 import { Atom } from "./data.mjs";
-import {
-  atomGlContext,
-  atomMouseHoldingPaths,
-  atomObjectsBuffer,
-  atomObjectsTree,
-  atomProxiedDispatch,
-} from "./global.mjs";
-import {
-  atomViewerPosition,
-  atomViewerUpward,
-  moveViewerBy,
-  newLookatPoint,
-  rotateGlanceBy,
-  spinGlanceBy,
-  transform3d,
-} from "./perspective.mjs";
+import { atomGlContext, atomMouseHoldingPaths, atomObjectsBuffer, atomObjectsTree, atomProxiedDispatch } from "./global.mjs";
+import { atomViewerPosition, atomViewerUpward, moveViewerBy, newLookatPoint, rotateGlanceBy, spinGlanceBy, transform3d } from "./perspective.mjs";
 import * as twgl from "twgl.js";
 import { V2 } from "./touch-control.js";
 import { cDistance } from "./math.mjs";
+import effectXVert from "../shaders/effect-x.vert";
+import effectXFrag from "../shaders/effect-x.frag";
+import effectMixVert from "../shaders/effect-mix.vert";
+import effectMixFrag from "../shaders/effect-mix.frag";
 
 export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
   canvas.style.width = `${window.innerWidth}`;
   canvas.style.height = `${window.innerHeight}`;
 };
 
-export let loadObjects = (
-  tree: any,
-  dispatch: (op: string, data: any) => void
-) => {
+export let loadObjects = (tree: any, dispatch: (op: string, data: any) => void) => {
   let gl = atomGlContext.deref();
   atomObjectsTree.reset(tree);
   atomProxiedDispatch.reset(dispatch);
@@ -120,9 +101,8 @@ export let paintCanvas = () => {
     }
   }
   if (isPostEffect) {
-    console.error("TODO");
-    let effectXPrograme = cachedBuildProgram(gl, "TODO", "TODO");
-    let mixProgram = cachedBuildProgram(gl, "TODO", "TODO");
+    let effectXProgram = cachedBuildProgram(gl, effectXVert, effectXFrag);
+    let mixProgram = cachedBuildProgram(gl, effectMixVert, effectMixFrag);
     let uvSettings = {
       position: createAttributeArray([
         [-1, -1],
@@ -137,58 +117,16 @@ export let paintCanvas = () => {
 
     let mixBufferInfo = twgl.createBufferInfoFromArrays(gl, uvSettings);
     gl.disable(gl.DEPTH_TEST);
-    blurAtDirection(
-      gl,
-      drawFb,
-      effectXFb,
-      1,
-      effectXPrograme,
-      effectXBufferInfo
-    );
-    blurAtDirection(
-      gl,
-      effectXFb,
-      effectYFb,
-      0,
-      effectXPrograme,
-      effectXBufferInfo
-    );
-    blurAtDirection(
-      gl,
-      effectYFb,
-      effectXFb,
-      1,
-      effectXPrograme,
-      effectXBufferInfo
-    );
-    blurAtDirection(
-      gl,
-      effectXFb,
-      effectYFb,
-      0,
-      effectXPrograme,
-      effectXBufferInfo
-    );
-    blurAtDirection(
-      gl,
-      effectYFb,
-      effectXFb,
-      1,
-      effectXPrograme,
-      effectXBufferInfo
-    );
-    blurAtDirection(
-      gl,
-      effectXFb,
-      effectYFb,
-      0,
-      effectXPrograme,
-      effectXBufferInfo
-    );
+    blurAtDirection(gl, drawFb, effectXFb, 1, effectXProgram, effectXBufferInfo);
+    blurAtDirection(gl, effectXFb, effectYFb, 0, effectXProgram, effectXBufferInfo);
+    blurAtDirection(gl, effectYFb, effectXFb, 1, effectXProgram, effectXBufferInfo);
+    blurAtDirection(gl, effectXFb, effectYFb, 0, effectXProgram, effectXBufferInfo);
+    blurAtDirection(gl, effectYFb, effectXFb, 1, effectXProgram, effectXBufferInfo);
+    blurAtDirection(gl, effectXFb, effectYFb, 0, effectXProgram, effectXBufferInfo);
     twgl.bindFramebufferInfo(gl, null);
     twgl.resizeCanvasToDisplaySize(gl.canvas, dpr);
     clearGl(gl);
-    gl.useProgram(mixProgram);
+    gl.useProgram(mixProgram.program);
     twgl.setBuffersAndAttributes(gl, mixProgram, mixBufferInfo);
     twgl.setUniforms(mixProgram, {
       draw_tex: drawFb.attachments[0],
@@ -213,11 +151,7 @@ export let setupMouseEvents = (canvas: HTMLCanvasElement) => {
   canvas.onpointerleave = handleScreenMouseup;
 };
 
-export let traverseTree = (
-  tree: any,
-  coord: number[],
-  cb: (obj: any, coord: any) => void
-) => {
+export let traverseTree = (tree: any, coord: number[], cb: (obj: any, coord: any) => void) => {
   if (tree != null) {
     switch (tree.type) {
       case "object":
@@ -242,11 +176,7 @@ let createAttributeArray = (points: any[]) => {
   if (Array.isArray(p0)) {
     let pps = points.flat();
     let num = p0.length;
-    let positionArray = twgl.primitives.createAugmentedTypedArray(
-      num,
-      points.length,
-      null
-    );
+    let positionArray = twgl.primitives.createAugmentedTypedArray(num, points.length, null);
     for (let idx = 0; idx < points.length; idx++) {
       (positionArray as any)[idx] = points[idx];
     }
@@ -254,11 +184,7 @@ let createAttributeArray = (points: any[]) => {
     return positionArray;
   }
   if (typeof p0 === "number") {
-    let positionArray = twgl.primitives.createAugmentedTypedArray(
-      1,
-      points.length,
-      null
-    );
+    let positionArray = twgl.primitives.createAugmentedTypedArray(1, points.length, null);
     for (let idx = 0; idx < points.length; idx++) {
       (positionArray as any)[idx] = points[idx];
     }
@@ -269,19 +195,12 @@ let createAttributeArray = (points: any[]) => {
   return twgl.primitives.createAugmentedTypedArray(1, points.length, null);
 };
 
-let blurAtDirection = (
-  gl: WebGLRenderingContext,
-  fromFb: twgl.FramebufferInfo,
-  toFb: twgl.FramebufferInfo,
-  direction: number,
-  program: any,
-  buffer: any
-) => {
+let blurAtDirection = (gl: WebGLRenderingContext, fromFb: twgl.FramebufferInfo, toFb: twgl.FramebufferInfo, direction: number, program: any, buffer: any) => {
   twgl.resizeFramebufferInfo(gl, toFb);
   twgl.resizeCanvasToDisplaySize(gl.canvas, dpr);
   twgl.bindFramebufferInfo(gl, toFb);
   // clearGl(gl);
-  gl.useProgram(program);
+  gl.useProgram(program.program);
   twgl.setBuffersAndAttributes(gl, program, buffer);
   twgl.setUniforms(program, {
     tex1: fromFb.attachments[0],
@@ -295,12 +214,7 @@ let clearGl = (gl: WebGLRenderingContext) => {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
 
-let loadSizedBuffer = (
-  gl: WebGLRenderingContext,
-  fbRef: Atom<any>,
-  w: number,
-  h: number
-) => {
+let loadSizedBuffer = (gl: WebGLRenderingContext, fbRef: Atom<any>, w: number, h: number) => {
   let b = fbRef.deref();
   if (b && b.size && b.size[0] === w && b.size[1] === h) {
     return b.buffer;
@@ -366,16 +280,9 @@ let handleScreenClick = (event: MouseEvent) => {
           return p * scaleRadio;
         });
         let r = mappedPosition[2];
-        let mappedRadius =
-          scaleRadio * region.radius((backConeScale + 1) / (r + backConeScale));
-        let distance = cDistance(
-          [screenPosition[0], screenPosition[1]],
-          [x, y]
-        );
-        if (
-          distance <= touchDeviation + mappedRadius &&
-          r > -0.8 * backConeScale
-        ) {
+        let mappedRadius = scaleRadio * region.radius((backConeScale + 1) / (r + backConeScale));
+        let distance = cDistance([screenPosition[0], screenPosition[1]], [x, y]);
+        if (distance <= touchDeviation + mappedRadius && r > -0.8 * backConeScale) {
           hitTargetsBuffer.deref().push([r, onHit, null]);
         }
       }
@@ -404,16 +311,9 @@ let handleScreenMousedown = (event: MouseEvent) => {
           return p * scaleRadio;
         });
         let r = mappedPosition[2];
-        let mappedRadius =
-          scaleRadio * region.radius((backConeScale + 1) / (r + backConeScale));
-        let distance = cDistance(
-          [screenPosition[0], screenPosition[1]],
-          [x, y]
-        );
-        if (
-          distance <= touchDeviation + mappedRadius &&
-          r > -0.8 * backConeScale
-        ) {
+        let mappedRadius = scaleRadio * region.radius((backConeScale + 1) / (r + backConeScale));
+        let distance = cDistance([screenPosition[0], screenPosition[1]], [x, y]);
+        if (distance <= touchDeviation + mappedRadius && r > -0.8 * backConeScale) {
           hitTargetsBuffer.deref().push([r, onMousedown, coord]);
         }
       }

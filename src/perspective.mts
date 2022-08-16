@@ -25,20 +25,14 @@ export let rotateGlanceBy = (x: number, y: number) => {
     let forward = atomViewerForward.deref();
     let upward = atomViewerUpward.deref();
     let rightward = vCross(upward, forward);
-    atomViewerForward.reset(
-      vAdd(vScale(forward, Math.cos(da)), vScale(rightward, Math.sin(da)))
-    );
+    atomViewerForward.reset(vAdd(vScale(forward, Math.cos(da)), vScale(rightward, Math.sin(da))));
   }
   if (y !== 0) {
     let da = y * 0.1;
     let forward = atomViewerForward.deref();
     let upward = atomViewerUpward.deref();
-    atomViewerForward.reset(
-      vAdd(vScale(forward, Math.cos(da)), vScale(upward, Math.sin(da)))
-    );
-    atomViewerUpward.reset(
-      vAdd(vScale(upward, Math.cos(da)), vScale(forward, -Math.sin(da)))
-    );
+    atomViewerForward.reset(vAdd(vScale(forward, Math.cos(da)), vScale(upward, Math.sin(da))));
+    atomViewerUpward.reset(vAdd(vScale(upward, Math.cos(da)), vScale(forward, -Math.sin(da))));
   }
 };
 
@@ -48,9 +42,7 @@ export let spinGlanceBy = (v: number) => {
     let forward = atomViewerForward.deref();
     let upward = atomViewerUpward.deref();
     let rightward = vCross(upward, forward);
-    atomViewerUpward.reset(
-      vAdd(vScale(upward, Math.cos(da)), vScale(rightward, Math.sin(da)))
-    );
+    atomViewerUpward.reset(vAdd(vScale(upward, Math.cos(da)), vScale(rightward, Math.sin(da))));
   }
 };
 
@@ -70,10 +62,7 @@ export let toViewerAxis = (x: number, y: number, z: number) => {
   let forward = atomViewerForward.deref();
   let upward = atomViewerUpward.deref();
   let rightward = vCross(upward, forward);
-  return vAdd(
-    vAdd(vScale(rightward, -x), vScale(upward, y)),
-    vScale(forward, -z)
-  );
+  return vAdd(vAdd(vScale(rightward, -x), vScale(upward, y)), vScale(forward, -z));
 };
 
 export let transform3d = (p0: V3): V3 => {
