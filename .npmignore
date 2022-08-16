@@ -9,3 +9,9 @@ lib/main.mjs
 index.html
 
 tsconfig.json
+
+dist/
+.github
+vite.config.mjs
+entry.mts
+.prettierrc
