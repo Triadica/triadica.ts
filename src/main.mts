@@ -45,7 +45,6 @@ export let main = () => {
 };
 
 let renderApp = () => {
-  console.info("render app");
   loadObjects(compContainer(atomStore.deref()), dispatch);
   paintCanvas();
 };

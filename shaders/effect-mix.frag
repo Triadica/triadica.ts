@@ -26,9 +26,6 @@ const int repeat = 6;
 
 void main() {
 
-  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-  return;
-
   // blur_y on effect_x_tex, and apply to original picture
   vec4 draw_color = texture2D(draw_tex, v_texcoord);
 

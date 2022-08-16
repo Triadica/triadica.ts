@@ -68,7 +68,6 @@ export let paintCanvas = () => {
   clearGl(gl);
   let objects = atomObjectsBuffer.deref();
   for (let object of objects) {
-    console.log("rendering object", object);
     let programInfo = object.program;
     let bufferInfo = object.buffer;
     let currentUniforms = uniforms;
@@ -171,8 +170,8 @@ let createAttributeArray = (points: any[]) => {
     let pps = points.flat();
     let num = p0.length;
     let positionArray = twgl.primitives.createAugmentedTypedArray(num, points.length, null);
-    for (let idx = 0; idx < points.length; idx++) {
-      (positionArray as any)[idx] = points[idx];
+    for (let idx = 0; idx < pps.length; idx++) {
+      (positionArray as any)[idx] = pps[idx];
     }
 
     return positionArray;
