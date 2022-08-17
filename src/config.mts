@@ -1,6 +1,6 @@
 import { Atom } from "./data.mjs";
 import * as twgl from "twgl.js";
-import mobile from "is-mobile";
+import isMobilejs from "ismobilejs";
 
 export let getEnv = (name: string, defaultValue: string): string => {
   let params = new URLSearchParams(location.search.slice(1));
@@ -48,4 +48,4 @@ export let halfPi = 0.5 * Math.PI;
 
 export let isPostEffect = getEnv("effect", "off") === "on";
 
-export let isMobile = mobile(); // TODO test
+export let isMobile = isMobilejs(window.navigator).any; // TODO test
