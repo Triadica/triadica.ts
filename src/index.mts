@@ -3,7 +3,7 @@ import { Atom } from "./data.mjs";
 import { atomGlContext, atomMouseHoldingPaths, atomObjectsBuffer, atomObjectsTree, atomProxiedDispatch } from "./global.mjs";
 import { atomViewerPosition, atomViewerUpward, moveViewerBy, newLookatPoint, rotateGlanceBy, spinGlanceBy, transform3d } from "./perspective.mjs";
 import * as twgl from "twgl.js";
-import { ControlStates, V2 } from "./touch-control.js";
+import { ControlStates, V2 } from "./touch-control.mjs";
 import { cDistance } from "./math.mjs";
 import effectXVert from "../shaders/effect-x.vert";
 import effectXFrag from "../shaders/effect-x.frag";
@@ -282,7 +282,7 @@ let refineStrength = (x: number): number => {
 let handleScreenClick = (event: MouseEvent) => {
   let x = event.clientX - window.innerWidth * 0.5;
   let y = -(event.clientY - window.innerHeight * 0.5);
-  let scaleRadio = 0.001 * 0.5 * window.innerWidth;
+  let scaleRadio = 0.002 * 0.5 * window.innerWidth;
   let touchDeviation = isMobile ? 16 : 4;
   let hitTargetsBuffer = new Atom([]);
   traverseTree(atomObjectsTree.deref(), [], (obj: TriadicaObjectData, coord: number[]) => {
@@ -313,7 +313,7 @@ let handleScreenClick = (event: MouseEvent) => {
 let handleScreenMousedown = (event: MouseEvent) => {
   let x = event.clientX - 0.5 * window.innerWidth;
   let y = -(event.clientY - 0.5 * window.innerHeight);
-  let scaleRadio = 0.001 * 0.5 * window.innerWidth;
+  let scaleRadio = 0.002 * 0.5 * window.innerWidth;
   let touchDeviation = isMobile ? 16 : 4;
   let hitTargetsBuffer = new Atom([]);
   traverseTree(atomObjectsTree.deref(), [], (obj: TriadicaObjectData, coord: number[]) => {
@@ -370,6 +370,7 @@ let handleScreenMouseup = (event: MouseEvent) => {
         }
       }
     }
+    atomMouseHoldingPaths.reset([]);
   }
 };
 

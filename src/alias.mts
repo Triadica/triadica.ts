@@ -49,15 +49,16 @@ export interface TriadicaObjectBuffer {
   buffer: twgl.BufferInfo;
   drawMode: DrawMode;
   getUniforms: () => Record<string, any>;
+  hitRegion?: TriadicaHitRegion;
 }
 
 interface TriadicaHitRegion {
   radius: number;
   position: V3;
-  onHit: (e: MouseEvent, d: Function) => void;
-  onMousedown: (e: MouseEvent, d: Function) => void;
-  onMousemove: (e: MouseEvent, d: Function) => void;
-  onMouseup: (e: MouseEvent, d: Function) => void;
+  onHit?: (e: MouseEvent, d: (op: string, data: any) => void) => void;
+  onMousedown?: (e: MouseEvent, d: (op: string, data: any) => void) => void;
+  onMousemove?: (e: MouseEvent, d: (op: string, data: any) => void) => void;
+  onMouseup?: (e: MouseEvent, d: (op: string, data: any) => void) => void;
 }
 
 export let object = (options: TriadicaObjectOptions): TriadicaObjectData => {
@@ -88,7 +89,8 @@ export let object = (options: TriadicaObjectOptions): TriadicaObjectData => {
     let collect = (info: Record<string, any>) => {
       let idx = mutableLocalArrayCounter;
       mutableLocalArrayCounter += 1;
-      for (let name in names) {
+      for (let i in names) {
+        let name = names[i];
         let d = info[name];
         if (Array.isArray(d) && d.length === 3) {
           let target = ret[name] as number[];
@@ -112,7 +114,8 @@ export let object = (options: TriadicaObjectOptions): TriadicaObjectData => {
         }
       }
     };
-    for (let name in names) {
+    for (let i in names) {
+      let name = names[i];
       let num = Array.isArray(g0[name]) ? (g0[name] as number[]).length : 1;
       ret[name] = twgl.primitives.createAugmentedTypedArray(num, size, null);
     }
@@ -127,6 +130,7 @@ export let object = (options: TriadicaObjectOptions): TriadicaObjectData => {
     fragmentShader: options.fragmentShader,
     arrays: arrays,
     getUniforms: options.getUniforms,
+    hitRegion: options.hitRegion,
   };
 };
 
