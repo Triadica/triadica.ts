@@ -16,7 +16,6 @@ export let group = (options: Record<string, any>, ...children: TriadicaElement[]
   };
 };
 
-// TODO need to support `triangle-fan` and `triangle-strip`
 export type DrawMode = "triangles" | "lines" | "line-strip" | "line-loop" | "triangle-fan" | "triangle-strip";
 
 type PackedAttribute = PackedAttribute[] | Record<string, number | number[]>;

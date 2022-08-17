@@ -84,6 +84,12 @@ export let paintCanvas = () => {
       case "triangles":
         twgl.drawBufferInfo(gl, bufferInfo, gl.TRIANGLES);
         break;
+      case "triangle-fan":
+        twgl.drawBufferInfo(gl, bufferInfo, gl.TRIANGLE_FAN);
+        break;
+      case "triangle-strip":
+        twgl.drawBufferInfo(gl, bufferInfo, gl.TRIANGLE_STRIP);
+        break;
       case "lines":
         twgl.drawBufferInfo(gl, bufferInfo, gl.LINES);
         break;
