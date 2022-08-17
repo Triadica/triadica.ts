@@ -1,40 +1,22 @@
-import {
-  backConeScale,
-  cachedBuildProgram,
-  dpr,
-  isMobile,
-  isPostEffect,
-} from "./config.mjs";
+import { backConeScale, cachedBuildProgram, dpr, isMobile, isPostEffect } from "./config.mjs";
 import { Atom } from "./data.mjs";
-import {
-  atomGlContext,
-  atomMouseHoldingPaths,
-  atomObjectsBuffer,
-  atomObjectsTree,
-  atomProxiedDispatch,
-} from "./global.mjs";
-import {
-  atomViewerPosition,
-  atomViewerUpward,
-  moveViewerBy,
-  newLookatPoint,
-  rotateGlanceBy,
-  spinGlanceBy,
-  transform3d,
-} from "./perspective.mjs";
+import { atomGlContext, atomMouseHoldingPaths, atomObjectsBuffer, atomObjectsTree, atomProxiedDispatch } from "./global.mjs";
+import { atomViewerPosition, atomViewerUpward, moveViewerBy, newLookatPoint, rotateGlanceBy, spinGlanceBy, transform3d } from "./perspective.mjs";
 import * as twgl from "twgl.js";
-import { V2 } from "./touch-control.js";
+import { ControlStates, V2 } from "./touch-control.js";
 import { cDistance } from "./math.mjs";
+import effectXVert from "../shaders/effect-x.vert";
+import effectXFrag from "../shaders/effect-x.frag";
+import effectMixVert from "../shaders/effect-mix.vert";
+import effectMixFrag from "../shaders/effect-mix.frag";
+import { TriadicaElement, TriadicaObjectData } from "./alias.mjs";
 
 export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
   canvas.style.width = `${window.innerWidth}`;
   canvas.style.height = `${window.innerHeight}`;
 };
 
-export let loadObjects = (
-  tree: any,
-  dispatch: (op: string, data: any) => void
-) => {
+export let loadObjects = (tree: TriadicaElement, dispatch: (op: string, data: any) => void) => {
   let gl = atomGlContext.deref();
   atomObjectsTree.reset(tree);
   atomProxiedDispatch.reset(dispatch);
@@ -87,21 +69,19 @@ export let paintCanvas = () => {
   clearGl(gl);
   let objects = atomObjectsBuffer.deref();
   for (let object of objects) {
-    console.log("rendering object", object);
     let programInfo = object.program;
     let bufferInfo = object.buffer;
     let currentUniforms = uniforms;
     if (object.getUniforms) {
-      currentUniforms = object.getUniforms();
+      currentUniforms = object.getUniforms() as any;
       Object.assign(currentUniforms, uniforms);
     }
     gl.useProgram(programInfo.program);
     twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
-    console.log("currentUniforms", currentUniforms);
+    // console.log("currentUniforms", currentUniforms);
     twgl.setUniforms(programInfo, currentUniforms);
     switch (object.drawMode) {
       case "triangles":
-        console.info("triangles");
         twgl.drawBufferInfo(gl, bufferInfo, gl.TRIANGLES);
         break;
       case "lines":
@@ -120,9 +100,9 @@ export let paintCanvas = () => {
     }
   }
   if (isPostEffect) {
-    console.error("TODO");
-    let effectXPrograme = cachedBuildProgram(gl, "TODO", "TODO");
-    let mixProgram = cachedBuildProgram(gl, "TODO", "TODO");
+    let effectXProgram = cachedBuildProgram(gl, effectXVert, effectXFrag);
+    let mixProgram = cachedBuildProgram(gl, effectMixVert, effectMixFrag);
+
     let uvSettings = {
       position: createAttributeArray([
         [-1, -1],
@@ -134,76 +114,28 @@ export let paintCanvas = () => {
       ]),
     };
     let effectXBufferInfo = twgl.createBufferInfoFromArrays(gl, uvSettings);
-
     let mixBufferInfo = twgl.createBufferInfoFromArrays(gl, uvSettings);
+
     gl.disable(gl.DEPTH_TEST);
-    blurAtDirection(
-      gl,
-      drawFb,
-      effectXFb,
-      1,
-      effectXPrograme,
-      effectXBufferInfo
-    );
-    blurAtDirection(
-      gl,
-      effectXFb,
-      effectYFb,
-      0,
-      effectXPrograme,
-      effectXBufferInfo
-    );
-    blurAtDirection(
-      gl,
-      effectYFb,
-      effectXFb,
-      1,
-      effectXPrograme,
-      effectXBufferInfo
-    );
-    blurAtDirection(
-      gl,
-      effectXFb,
-      effectYFb,
-      0,
-      effectXPrograme,
-      effectXBufferInfo
-    );
-    blurAtDirection(
-      gl,
-      effectYFb,
-      effectXFb,
-      1,
-      effectXPrograme,
-      effectXBufferInfo
-    );
-    blurAtDirection(
-      gl,
-      effectXFb,
-      effectYFb,
-      0,
-      effectXPrograme,
-      effectXBufferInfo
-    );
+
+    blurAtDirection(gl, drawFb, effectXFb, 1, effectXProgram, effectXBufferInfo);
+    blurAtDirection(gl, effectXFb, effectYFb, 0, effectXProgram, effectXBufferInfo);
+    blurAtDirection(gl, effectYFb, effectXFb, 1, effectXProgram, effectXBufferInfo);
+    blurAtDirection(gl, effectXFb, effectYFb, 0, effectXProgram, effectXBufferInfo);
+    blurAtDirection(gl, effectYFb, effectXFb, 1, effectXProgram, effectXBufferInfo);
+    blurAtDirection(gl, effectXFb, effectYFb, 0, effectXProgram, effectXBufferInfo);
     twgl.bindFramebufferInfo(gl, null);
     twgl.resizeCanvasToDisplaySize(gl.canvas, dpr);
     clearGl(gl);
-    gl.useProgram(mixProgram);
+    gl.useProgram(mixProgram.program);
     twgl.setBuffersAndAttributes(gl, mixProgram, mixBufferInfo);
     twgl.setUniforms(mixProgram, {
       draw_tex: drawFb.attachments[0],
-      effect_x_tex: effectXFb.attachments[0],
+      effect_x_tex: effectYFb.attachments[0],
     });
     twgl.drawBufferInfo(gl, mixBufferInfo, gl.TRIANGLES);
   }
 };
-
-// defn setup-mouse-events! (canvas)
-//   set! (.-onclick canvas) handle-screen-click!
-//   set! (.-onpointerdown canvas) handle-screen-mousedown!
-//   set! (.-onpointermove canvas) handle-screen-mousemove!
-//   set! (.-onpointerup canvas) handle-screen-mouseup!
-//   set! (.-onpointerleave canvas) handle-screen-mouseup!
 
 export let setupMouseEvents = (canvas: HTMLCanvasElement) => {
   canvas.onclick = handleScreenClick;
@@ -213,11 +145,7 @@ export let setupMouseEvents = (canvas: HTMLCanvasElement) => {
   canvas.onpointerleave = handleScreenMouseup;
 };
 
-export let traverseTree = (
-  tree: any,
-  coord: number[],
-  cb: (obj: any, coord: any) => void
-) => {
+export let traverseTree = (tree: TriadicaElement, coord: number[], cb: (obj: TriadicaObjectData, coord: number[]) => void) => {
   if (tree != null) {
     switch (tree.type) {
       case "object":
@@ -225,47 +153,39 @@ export let traverseTree = (
         break;
       case "group":
         if (tree.children != null) {
-          tree.children.map((child: any, idx: number) => {
+          tree.children.map((child: TriadicaElement, idx: number) => {
             traverseTree(child, [...coord, idx], cb);
           });
         }
         break;
       default:
-        console.warn(`unknown element type: ${tree.type}`);
+        console.warn(`unknown element type: ${tree}`);
         break;
     }
   }
 };
 
-let createAttributeArray = (points: any[]) => {
+let createAttributeArray = (points: number[] | number[][]): ArrayBufferView => {
   let p0 = points[0];
   if (Array.isArray(p0)) {
     let pps = points.flat();
     let num = p0.length;
-    let positionArray = twgl.primitives.createAugmentedTypedArray(
-      num,
-      points.length,
-      null
-    );
-    for (let idx = 0; idx < points.length; idx++) {
-      (positionArray as any)[idx] = points[idx];
+    let positionArray = twgl.primitives.createAugmentedTypedArray(num, points.length, null);
+    for (let idx = 0; idx < pps.length; idx++) {
+      (positionArray as any)[idx] = pps[idx];
     }
 
     return positionArray;
   }
   if (typeof p0 === "number") {
-    let positionArray = twgl.primitives.createAugmentedTypedArray(
-      1,
-      points.length,
-      null
-    );
+    let positionArray = twgl.primitives.createAugmentedTypedArray(1, points.length, null);
     for (let idx = 0; idx < points.length; idx++) {
       (positionArray as any)[idx] = points[idx];
     }
 
     return positionArray;
   }
-  console.error('"unknown attributes data:' + points);
+  console.error("unknown attributes data:", points);
   return twgl.primitives.createAugmentedTypedArray(1, points.length, null);
 };
 
@@ -274,14 +194,14 @@ let blurAtDirection = (
   fromFb: twgl.FramebufferInfo,
   toFb: twgl.FramebufferInfo,
   direction: number,
-  program: any,
-  buffer: any
+  program: twgl.ProgramInfo,
+  buffer: twgl.BufferInfo
 ) => {
   twgl.resizeFramebufferInfo(gl, toFb);
   twgl.resizeCanvasToDisplaySize(gl.canvas, dpr);
   twgl.bindFramebufferInfo(gl, toFb);
   // clearGl(gl);
-  gl.useProgram(program);
+  gl.useProgram(program.program);
   twgl.setBuffersAndAttributes(gl, program, buffer);
   twgl.setUniforms(program, {
     tex1: fromFb.attachments[0],
@@ -297,10 +217,13 @@ let clearGl = (gl: WebGLRenderingContext) => {
 
 let loadSizedBuffer = (
   gl: WebGLRenderingContext,
-  fbRef: Atom<any>,
+  fbRef: Atom<{
+    buffer: twgl.FramebufferInfo;
+    size: V2;
+  }>,
   w: number,
   h: number
-) => {
+): twgl.FramebufferInfo => {
   let b = fbRef.deref();
   if (b && b.size && b.size[0] === w && b.size[1] === h) {
     return b.buffer;
@@ -313,9 +236,9 @@ let loadSizedBuffer = (
   return f;
 };
 
-export let onControlEvent = (elapsed: number, states: any, delta: any) => {
-  let lMove = states.leftMove.map(refineStrength);
-  let rMove = states.rightMove.map(refineStrength);
+export let onControlEvent = (elapsed: number, states: ControlStates, delta: ControlStates) => {
+  let lMove = states.leftMove.map(refineStrength) as V2;
+  let rMove = states.rightMove.map(refineStrength) as V2;
   let rDelta = delta.rightMove;
   let lDelta = delta.leftMove;
   let leftA = states.leftA;
@@ -342,11 +265,11 @@ export let onControlEvent = (elapsed: number, states: any, delta: any) => {
   }
 };
 
-let isZero = (v: V2) => {
+let isZero = (v: V2): boolean => {
   return v[0] === 0 && v[1] === 0;
 };
 
-let refineStrength = (x: number) => {
+let refineStrength = (x: number): number => {
   return x * Math.sqrt(Math.abs(x * 0.02));
 };
 
@@ -356,7 +279,7 @@ let handleScreenClick = (event: MouseEvent) => {
   let scaleRadio = 0.001 * 0.5 * window.innerWidth;
   let touchDeviation = isMobile ? 16 : 4;
   let hitTargetsBuffer = new Atom([]);
-  traverseTree(atomObjectsTree.deref(), [], (obj: any, coord: number[]) => {
+  traverseTree(atomObjectsTree.deref(), [], (obj: TriadicaObjectData, coord: number[]) => {
     if (obj.hitRegion != null) {
       let region = obj.hitRegion;
       if (region.onHit != null) {
@@ -366,16 +289,9 @@ let handleScreenClick = (event: MouseEvent) => {
           return p * scaleRadio;
         });
         let r = mappedPosition[2];
-        let mappedRadius =
-          scaleRadio * region.radius((backConeScale + 1) / (r + backConeScale));
-        let distance = cDistance(
-          [screenPosition[0], screenPosition[1]],
-          [x, y]
-        );
-        if (
-          distance <= touchDeviation + mappedRadius &&
-          r > -0.8 * backConeScale
-        ) {
+        let mappedRadius = scaleRadio * region.radius * ((backConeScale + 1) / (r + backConeScale));
+        let distance = cDistance([screenPosition[0], screenPosition[1]], [x, y]);
+        if (distance <= touchDeviation + mappedRadius && r > -0.8 * backConeScale) {
           hitTargetsBuffer.deref().push([r, onHit, null]);
         }
       }
@@ -394,7 +310,7 @@ let handleScreenMousedown = (event: MouseEvent) => {
   let scaleRadio = 0.001 * 0.5 * window.innerWidth;
   let touchDeviation = isMobile ? 16 : 4;
   let hitTargetsBuffer = new Atom([]);
-  traverseTree(atomObjectsTree.deref(), [], (obj: any, coord: number[]) => {
+  traverseTree(atomObjectsTree.deref(), [], (obj: TriadicaObjectData, coord: number[]) => {
     if (obj.hitRegion != null) {
       let region = obj.hitRegion;
       if (region.onMousedown != null) {
@@ -404,16 +320,9 @@ let handleScreenMousedown = (event: MouseEvent) => {
           return p * scaleRadio;
         });
         let r = mappedPosition[2];
-        let mappedRadius =
-          scaleRadio * region.radius((backConeScale + 1) / (r + backConeScale));
-        let distance = cDistance(
-          [screenPosition[0], screenPosition[1]],
-          [x, y]
-        );
-        if (
-          distance <= touchDeviation + mappedRadius &&
-          r > -0.8 * backConeScale
-        ) {
+        let mappedRadius = scaleRadio * region.radius * ((backConeScale + 1) / (r + backConeScale));
+        let distance = cDistance([screenPosition[0], screenPosition[1]], [x, y]);
+        if (distance <= touchDeviation + mappedRadius && r > -0.8 * backConeScale) {
           hitTargetsBuffer.deref().push([r, onMousedown, coord]);
         }
       }
@@ -486,11 +395,14 @@ let findNearest = (
   }
 };
 
-let loadTreeNode = (tree: any, path: number[]): any => {
+let loadTreeNode = (tree: TriadicaElement, path: number[]): TriadicaElement => {
   if (path.length === 0) {
     return tree;
-  } else {
+  } else if (tree.type === "group") {
     let children = tree.children;
     return loadTreeNode(children[path[0]], path.slice(1));
+  } else {
+    console.error("loadTreeNode: invalid tree", tree);
+    throw new Error("Unexpected tree node");
   }
 };

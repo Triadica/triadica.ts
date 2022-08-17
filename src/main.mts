@@ -1,21 +1,11 @@
 import { isDev } from "./config.mjs";
 import { Atom } from "./data.mjs";
 import { atomGlContext } from "./global.mjs";
-import {
-  loadObjects,
-  onControlEvent,
-  paintCanvas,
-  resetCanvasSize,
-  setupMouseEvents,
-} from "./index.mjs";
+import { loadObjects, onControlEvent, paintCanvas, resetCanvasSize, setupMouseEvents } from "./index.mjs";
 import * as twgl from "twgl.js";
 import produce from "immer";
 import { atomDirtyUniforms, compContainer } from "./app/container.mjs";
-import {
-  renderControl,
-  replaceControlLoop,
-  startControlLoop,
-} from "./touch-control";
+import { renderControl, replaceControlLoop, startControlLoop } from "./touch-control";
 
 let canvas = document.querySelector("canvas");
 
@@ -37,8 +27,6 @@ export let main = () => {
   atomGlContext.reset(canvas.getContext("webgl", { antialias: true }));
   renderApp();
 
-  // TODO render control, from touch-control
-  // start-control-loop! 10 on-control-event
   renderControl();
   startControlLoop(10, onControlEvent);
 
@@ -57,7 +45,6 @@ export let main = () => {
 };
 
 let renderApp = () => {
-  console.info("render app");
   loadObjects(compContainer(atomStore.deref()), dispatch);
   paintCanvas();
 };

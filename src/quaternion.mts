@@ -2,11 +2,7 @@ export type V3 = [number, number, number];
 
 /// calculate the cross product of two vectors
 export let vCross = (a: V3, b: V3): V3 => {
-  return [
-    a[1] * b[2] - a[2] * b[1],
-    a[2] * b[0] - a[0] * b[2],
-    a[0] * b[1] - a[1] * b[0],
-  ];
+  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 };
 
 /// calculate the dot product of two vectors

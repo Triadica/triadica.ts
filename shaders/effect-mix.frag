@@ -25,6 +25,7 @@ float normal_distribution(float d, float sigma) {
 const int repeat = 6;
 
 void main() {
+
   // blur_y on effect_x_tex, and apply to original picture
   vec4 draw_color = texture2D(draw_tex, v_texcoord);
 

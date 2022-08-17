@@ -1,24 +1,23 @@
 import { Atom } from "./data.mjs";
 import * as twgl from "twgl.js";
+import mobile from "is-mobile";
 
-export let isDev = true; // TODO
+export let getEnv = (name: string, defaultValue: string): string => {
+  let params = new URLSearchParams(location.search.slice(1));
+  return params.get(name) || defaultValue;
+};
+
+export let isDev = getEnv("mode", "release") === "dev";
 
 let atomShaderPrograms = new Atom<Record<string, twgl.ProgramInfo>>({});
 
-export let cachedBuildProgram = (
-  gl: WebGLRenderingContext,
-  vs: string,
-  fs: string
-): twgl.ProgramInfo => {
+export let cachedBuildProgram = (gl: WebGLRenderingContext, vs: string, fs: string): twgl.ProgramInfo => {
   let caches = atomShaderPrograms.deref();
   let field = `${vs}\n@@@@@@\n${fs}`;
   if (caches[field] != null) {
     return caches[field];
   } else {
-    let program = twgl.createProgramInfo(gl, [
-      replaceVertexShader(vs),
-      replaceFragmentShader(fs),
-    ]);
+    let program = twgl.createProgramInfo(gl, [replaceVertexShader(vs), replaceFragmentShader(fs)]);
     caches[field] = program;
     return program;
   }
@@ -38,9 +37,7 @@ let replaceVertexShader = (vs: string): string => {
 import glslColorsCode from "../shaders/triadica-colors.glsl";
 
 let replaceFragmentShader = (fs: string): string => {
-  return fs
-    .replace("{{triadica_colors}}", glslColorsCode)
-    .replace("{{triadica_noises}}", glslNoisesCode);
+  return fs.replace("{{triadica_colors}}", glslColorsCode).replace("{{triadica_noises}}", glslNoisesCode);
 };
 
 export let dpr = window.devicePixelRatio;
@@ -49,6 +46,6 @@ export let backConeScale = 0.5;
 
 export let halfPi = 0.5 * Math.PI;
 
-export let isPostEffect = false; // TODO
+export let isPostEffect = getEnv("effect", "off") === "on";
 
-export let isMobile = false; // TODO
+export let isMobile = mobile(); // TODO test

@@ -1,4 +1,4 @@
-import { group, object } from "../alias.mjs";
+import { group, object, TriadicaObjectData } from "../alias.mjs";
 import { Atom } from "../data.mjs";
 
 import vs from "../../shaders/lines.vert";
@@ -10,7 +10,7 @@ export let compContainer = (store: any) => {
   return group({}, compAxis());
 };
 
-let compAxis = () => {
+let compAxis = (): TriadicaObjectData => {
   return object({
     vertexShader: vs,
     fragmentShader: fs,
@@ -20,6 +20,8 @@ let compAxis = () => {
       [400, 0, 0],
       [0, 400, 0],
       [0, -400, 0],
+      [0, 0, -400],
+      [0, 0, 400],
     ],
   });
 };

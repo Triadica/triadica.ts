@@ -5,7 +5,7 @@ import { Atom } from "./data.mjs";
 
 export let atomViewerForward = new Atom<V3>([0, 0, -1]);
 
-export let atomViewerPosition = new Atom<V3>([0, 0, 0]);
+export let atomViewerPosition = new Atom<V3>([0, 0, 600]);
 
 export let atomViewerUpward = new Atom<V3>([0, 1, 0]);
 
@@ -15,7 +15,7 @@ export let moveViewerBy = (x0: number, y0: number, z0: number) => {
   atomViewerPosition.reset(vAdd(position, dv));
 };
 
-export let newLookatPoint = () => {
+export let newLookatPoint = (): V3 => {
   return vScale(atomViewerForward.deref(), 600);
 };
 
@@ -25,20 +25,14 @@ export let rotateGlanceBy = (x: number, y: number) => {
     let forward = atomViewerForward.deref();
     let upward = atomViewerUpward.deref();
     let rightward = vCross(upward, forward);
-    atomViewerForward.reset(
-      vAdd(vScale(forward, Math.cos(da)), vScale(rightward, Math.sin(da)))
-    );
+    atomViewerForward.reset(vAdd(vScale(forward, Math.cos(da)), vScale(rightward, Math.sin(da))));
   }
   if (y !== 0) {
     let da = y * 0.1;
     let forward = atomViewerForward.deref();
     let upward = atomViewerUpward.deref();
-    atomViewerForward.reset(
-      vAdd(vScale(forward, Math.cos(da)), vScale(upward, Math.sin(da)))
-    );
-    atomViewerUpward.reset(
-      vAdd(vScale(upward, Math.cos(da)), vScale(forward, -Math.sin(da)))
-    );
+    atomViewerForward.reset(vAdd(vScale(forward, Math.cos(da)), vScale(upward, Math.sin(da))));
+    atomViewerUpward.reset(vAdd(vScale(upward, Math.cos(da)), vScale(forward, -Math.sin(da))));
   }
 };
 
@@ -48,9 +42,7 @@ export let spinGlanceBy = (v: number) => {
     let forward = atomViewerForward.deref();
     let upward = atomViewerUpward.deref();
     let rightward = vCross(upward, forward);
-    atomViewerUpward.reset(
-      vAdd(vScale(upward, Math.cos(da)), vScale(rightward, Math.sin(da)))
-    );
+    atomViewerUpward.reset(vAdd(vScale(upward, Math.cos(da)), vScale(rightward, Math.sin(da))));
   }
 };
 
@@ -66,14 +58,11 @@ export let spinGlanceBy = (v: number) => {
 //           v-scale upward y
 //         v-scale forward $ negate z
 
-export let toViewerAxis = (x: number, y: number, z: number) => {
+export let toViewerAxis = (x: number, y: number, z: number): V3 => {
   let forward = atomViewerForward.deref();
   let upward = atomViewerUpward.deref();
   let rightward = vCross(upward, forward);
-  return vAdd(
-    vAdd(vScale(rightward, -x), vScale(upward, y)),
-    vScale(forward, -z)
-  );
+  return vAdd(vAdd(vScale(rightward, -x), vScale(upward, y)), vScale(forward, -z));
 };
 
 export let transform3d = (p0: V3): V3 => {
@@ -91,6 +80,6 @@ export let transform3d = (p0: V3): V3 => {
   return [xp, yp, zp];
 };
 
-let vSquare = (v: V3) => {
+let vSquare = (v: V3): number => {
   return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
 };
