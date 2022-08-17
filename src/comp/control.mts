@@ -141,3 +141,41 @@ export let compDragPoint = (
     })),
   });
 };
+
+export let compButton = (
+  props: {
+    position: V3;
+    size?: number;
+    color?: V3;
+  },
+  onClick: (e: MouseEvent, d: FnDispatch) => void
+): TriadicaObjectData => {
+  let position = props.position;
+  let size = props.size ?? 20;
+  let color = props.color ?? [0.6, 1, 0.56];
+  let geo: V3[] = [
+    [1, 0, 0],
+    [-1, 0, 0],
+    [0, 1, 0],
+    [0, -1, 0],
+    [0, 0, 1],
+    [0, 0, -1],
+  ];
+  let indices = [0, 5, 2, 1, 4, 2, 1, 5, 3, 0, 4, 3];
+  return object({
+    drawMode: "triangles",
+    vertexShader: dragPointVertexShader,
+    fragmentShader: dragPointFragmentShader,
+    hitRegion: {
+      position,
+      radius: size,
+      onHit: (e: MouseEvent, d: FnDispatch) => {
+        onClick(e, d);
+      },
+    },
+    packedAttrs: indices.map((i) => ({
+      position: vAdd(geo[i].map((x) => x * size) as V3, position),
+      color,
+    })),
+  });
+};

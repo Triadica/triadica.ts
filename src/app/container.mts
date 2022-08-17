@@ -1,6 +1,6 @@
 import { group, object, TriadicaObjectData } from "../alias.mjs";
 import { Atom } from "../data.mjs";
-import { compDragPoint, compSlider } from "../comp/control.mjs";
+import { compButton, compDragPoint, compSlider } from "../comp/control.mjs";
 
 import vs from "../../shaders/lines.vert";
 import fs from "../../shaders/lines.frag";
@@ -28,6 +28,15 @@ export let compContainer = (store: any) => {
       },
       (p: V3, dispatch: FnDispatch) => {
         dispatch("move-p2", p);
+      }
+    ),
+    compButton(
+      {
+        position: [200, 200, 30],
+        color: [0.2, 0.8, 0.7],
+      },
+      (e, dispatch: FnDispatch) => {
+        console.log("clicked");
       }
     )
   );
