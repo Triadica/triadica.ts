@@ -5,7 +5,7 @@ import { loadObjects, onControlEvent, paintCanvas, resetCanvasSize, setupMouseEv
 import * as twgl from "twgl.js";
 import produce from "immer";
 import { atomDirtyUniforms, compContainer } from "./app/container.mjs";
-import { renderControl, replaceControlLoop, startControlLoop } from "./touch-control";
+import { renderControl, replaceControlLoop, startControlLoop } from "./touch-control.mjs";
 
 let canvas = document.querySelector("canvas");
 
@@ -13,6 +13,7 @@ let atomStore = new Atom({
   v: 0,
   tab: "axis",
   p1: [0, 0, 0],
+  p2: [40, 20, 0],
   states: {},
 });
 
@@ -63,7 +64,13 @@ let dispatch = (op: string, data: any) => {
       : (() => {
           switch (op) {
             case "tab-focus":
-              return { tab: data, ...store };
+              return produce(store, (s) => {
+                s.tab = data;
+              });
+            case "move-p2":
+              return produce(store, (d) => {
+                d.p2 = data;
+              });
             default:
               return null;
           }

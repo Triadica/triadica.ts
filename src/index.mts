@@ -19,6 +19,7 @@ export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
 export let loadObjects = (tree: TriadicaElement, dispatch: (op: string, data: any) => void) => {
   let gl = atomGlContext.deref();
   atomObjectsTree.reset(tree);
+  atomObjectsBuffer.reset([]);
   atomProxiedDispatch.reset(dispatch);
   traverseTree(tree, [], (obj, coord) => {
     let program = cachedBuildProgram(gl, obj.vertexShader, obj.fragmentShader);
@@ -206,7 +207,7 @@ let blurAtDirection = (
   twgl.resizeFramebufferInfo(gl, toFb);
   twgl.resizeCanvasToDisplaySize(gl.canvas, dpr);
   twgl.bindFramebufferInfo(gl, toFb);
-  // clearGl(gl);
+  clearGl(gl);
   gl.useProgram(program.program);
   twgl.setBuffersAndAttributes(gl, program, buffer);
   twgl.setUniforms(program, {

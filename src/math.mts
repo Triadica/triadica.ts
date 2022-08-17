@@ -1,4 +1,4 @@
-import { V2 } from "./touch-control";
+import { V2 } from "./touch-control.mjs";
 
 export let square = (x: number): number => {
   return x * x;
