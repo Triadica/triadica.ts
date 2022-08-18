@@ -8,6 +8,7 @@ import { loadObjects, onControlEvent, paintCanvas, resetCanvasSize, setupMouseEv
 import { renderControl, replaceControlLoop, startControlLoop } from "./touch-control.mjs";
 import { atomDirtyUniforms, compContainer } from "./app/container.mjs";
 import { updateStates } from "./cursor.mjs";
+import { resetMemof1Caches } from "./memof1.mjs";
 
 let canvas = document.querySelector("canvas");
 
@@ -82,7 +83,7 @@ let dispatch = (op: string, data: any) => {
 };
 
 export let reload = () => {
-  // TODO reset-memof1-caches
+  resetMemof1Caches();
   renderApp();
   atomStore.removeWatch("change");
   atomStore.addWatch("change", (prev, store) => {
