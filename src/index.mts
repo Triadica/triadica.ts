@@ -1,15 +1,17 @@
+import * as twgl from "twgl.js";
+
 import { backConeScale, cachedBuildProgram, dpr, isMobile, isPostEffect } from "./config.mjs";
-import { Atom } from "./data.mjs";
+import { Atom } from "./atom.mjs";
 import { atomGlContext, atomMouseHoldingPaths, atomObjectsBuffer, atomObjectsTree, atomProxiedDispatch } from "./global.mjs";
 import { atomViewerPosition, atomViewerUpward, moveViewerBy, newLookatPoint, rotateGlanceBy, spinGlanceBy, transform3d } from "./perspective.mjs";
-import * as twgl from "twgl.js";
-import { ControlStates, V2 } from "./touch-control.js";
+import { ControlStates } from "./touch-control.mjs";
 import { cDistance } from "./math.mjs";
+import { V2, TriadicaElement, TriadicaObjectData } from "./primes.mjs";
+
 import effectXVert from "../shaders/effect-x.vert";
 import effectXFrag from "../shaders/effect-x.frag";
 import effectMixVert from "../shaders/effect-mix.vert";
 import effectMixFrag from "../shaders/effect-mix.frag";
-import { TriadicaElement, TriadicaObjectData } from "./alias.mjs";
 
 export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
   canvas.style.width = `${window.innerWidth}`;
@@ -19,6 +21,7 @@ export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
 export let loadObjects = (tree: TriadicaElement, dispatch: (op: string, data: any) => void) => {
   let gl = atomGlContext.deref();
   atomObjectsTree.reset(tree);
+  atomObjectsBuffer.reset([]);
   atomProxiedDispatch.reset(dispatch);
   traverseTree(tree, [], (obj, coord) => {
     let program = cachedBuildProgram(gl, obj.vertexShader, obj.fragmentShader);
@@ -206,7 +209,7 @@ let blurAtDirection = (
   twgl.resizeFramebufferInfo(gl, toFb);
   twgl.resizeCanvasToDisplaySize(gl.canvas, dpr);
   twgl.bindFramebufferInfo(gl, toFb);
-  // clearGl(gl);
+  clearGl(gl);
   gl.useProgram(program.program);
   twgl.setBuffersAndAttributes(gl, program, buffer);
   twgl.setUniforms(program, {
@@ -282,7 +285,7 @@ let refineStrength = (x: number): number => {
 let handleScreenClick = (event: MouseEvent) => {
   let x = event.clientX - window.innerWidth * 0.5;
   let y = -(event.clientY - window.innerHeight * 0.5);
-  let scaleRadio = 0.001 * 0.5 * window.innerWidth;
+  let scaleRadio = 0.002 * 0.5 * window.innerWidth;
   let touchDeviation = isMobile ? 16 : 4;
   let hitTargetsBuffer = new Atom([]);
   traverseTree(atomObjectsTree.deref(), [], (obj: TriadicaObjectData, coord: number[]) => {
@@ -313,7 +316,7 @@ let handleScreenClick = (event: MouseEvent) => {
 let handleScreenMousedown = (event: MouseEvent) => {
   let x = event.clientX - 0.5 * window.innerWidth;
   let y = -(event.clientY - 0.5 * window.innerHeight);
-  let scaleRadio = 0.001 * 0.5 * window.innerWidth;
+  let scaleRadio = 0.002 * 0.5 * window.innerWidth;
   let touchDeviation = isMobile ? 16 : 4;
   let hitTargetsBuffer = new Atom([]);
   traverseTree(atomObjectsTree.deref(), [], (obj: TriadicaObjectData, coord: number[]) => {
@@ -339,7 +342,7 @@ let handleScreenMousedown = (event: MouseEvent) => {
     let onMousedown = nearest[0];
     let coord = nearest[1];
     onMousedown(event, atomProxiedDispatch.deref());
-    atomMouseHoldingPaths.deref().push(coord as any); // TODO
+    atomMouseHoldingPaths.deref().push(coord);
   }
 };
 
@@ -370,6 +373,7 @@ let handleScreenMouseup = (event: MouseEvent) => {
         }
       }
     }
+    atomMouseHoldingPaths.reset([]);
   }
 };
 

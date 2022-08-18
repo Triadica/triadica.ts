@@ -1,13 +1,6 @@
-import { V3 } from "./quaternion.mjs";
 import * as twgl from "twgl.js";
 
-export interface TriadicaGroup {
-  type: "group";
-  children: TriadicaElement[];
-}
-
-/** major type for elements */
-export type TriadicaElement = TriadicaGroup | TriadicaObjectData;
+import { DrawMode, PackedAttribute, TriadicaElement, TriadicaGroup, TriadicaHitRegion, TriadicaObjectData, TriadicaObjectOptions, V3 } from "./primes.mjs";
 
 export let group = (options: Record<string, any>, ...children: TriadicaElement[]): TriadicaGroup => {
   return {
@@ -16,48 +9,12 @@ export let group = (options: Record<string, any>, ...children: TriadicaElement[]
   };
 };
 
-export type DrawMode = "triangles" | "lines" | "line-strip" | "line-loop" | "triangle-fan" | "triangle-strip";
-
-type PackedAttribute = PackedAttribute[] | Record<string, number | number[]>;
-
-/** an object of drawing things */
-export interface TriadicaObjectOptions {
-  vertexShader: string;
-  fragmentShader: string;
-  drawMode: DrawMode;
-  points?: V3[];
-  indices?: number[];
-  attributes?: Record<string, number[][]>;
-  packedAttrs?: PackedAttribute[];
-  getUniforms?: () => Record<string, any>;
-  hitRegion?: TriadicaHitRegion;
-}
-
-export interface TriadicaObjectData {
-  type: "object";
-  drawMode: DrawMode;
-  vertexShader: string;
-  fragmentShader: string;
-  // TODO
-  arrays: Record<string, any>;
-  getUniforms?: () => Record<string, any>;
-  hitRegion?: TriadicaHitRegion;
-}
-
 export interface TriadicaObjectBuffer {
   program: twgl.ProgramInfo;
   buffer: twgl.BufferInfo;
   drawMode: DrawMode;
   getUniforms: () => Record<string, any>;
-}
-
-interface TriadicaHitRegion {
-  radius: number;
-  position: V3;
-  onHit: (e: MouseEvent, d: Function) => void;
-  onMousedown: (e: MouseEvent, d: Function) => void;
-  onMousemove: (e: MouseEvent, d: Function) => void;
-  onMouseup: (e: MouseEvent, d: Function) => void;
+  hitRegion?: TriadicaHitRegion;
 }
 
 export let object = (options: TriadicaObjectOptions): TriadicaObjectData => {
@@ -88,7 +45,8 @@ export let object = (options: TriadicaObjectOptions): TriadicaObjectData => {
     let collect = (info: Record<string, any>) => {
       let idx = mutableLocalArrayCounter;
       mutableLocalArrayCounter += 1;
-      for (let name in names) {
+      for (let i in names) {
+        let name = names[i];
         let d = info[name];
         if (Array.isArray(d) && d.length === 3) {
           let target = ret[name] as number[];
@@ -112,7 +70,8 @@ export let object = (options: TriadicaObjectOptions): TriadicaObjectData => {
         }
       }
     };
-    for (let name in names) {
+    for (let i in names) {
+      let name = names[i];
       let num = Array.isArray(g0[name]) ? (g0[name] as number[]).length : 1;
       ret[name] = twgl.primitives.createAugmentedTypedArray(num, size, null);
     }
@@ -127,6 +86,7 @@ export let object = (options: TriadicaObjectOptions): TriadicaObjectData => {
     fragmentShader: options.fragmentShader,
     arrays: arrays,
     getUniforms: options.getUniforms,
+    hitRegion: options.hitRegion,
   };
 };
 

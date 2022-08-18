@@ -14,7 +14,7 @@ jobs:
           node-version: 16
           registry-url: https://registry.npmjs.org/
 
-      - run: yarn && yarn compile
+      - run: yarn && yarn compile && rm -rfv lib/app main.mjs
 
       - run: npm publish
         env:

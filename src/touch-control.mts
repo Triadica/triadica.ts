@@ -1,5 +1,7 @@
-import { Atom } from "./data.mjs";
+import { Atom } from "./atom.mjs";
+import { V2 } from "./primes.mjs";
 
+/** element data for building DOM */
 class MarkupElement {
   props: Record<string, any>;
   events: Record<string, any>;
@@ -10,8 +12,6 @@ class MarkupElement {
     this.children = children;
   }
 }
-
-export type V2 = [number, number];
 
 // complex minus
 let complex_minus = (a: V2, b: V2) => {
@@ -190,8 +190,6 @@ let renderDom = (el: MarkupElement, parent: HTMLElement) => {
 
   return div;
 };
-
-// defn replace-control-loop! (duration f) (clear-control-loop!) (start-control-loop! duration f)
 
 export let replaceControlLoop = (duration: number, f: (elapsed: number, states: any, g: any) => void) => {
   clearControlLoop();
