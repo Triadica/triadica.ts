@@ -1,5 +1,15 @@
 import { Atom } from "./atom.mjs";
-import equal from "deep-equal";
+
+const isEqual = function (var1: any, var2: any): boolean {
+  if (typeof var1 === "object" && typeof var2 === "object") {
+    // Checking equality for each of the inner values of the objects
+    const keys = [...new Set([...Object.keys(var1), ...Object.keys(var2)])];
+    return keys.every((key) => isEqual(var1[key], var2[key]) && isEqual(var2[key], var1[key]));
+  } else {
+    // Primitive types (number, boolean etc..)
+    return var1 === var2; // Normal equality
+  }
+};
 
 let atomKeyedCallCaches = new Atom<Map<any, Record<string, [any, any][]>>>(new Map());
 
@@ -9,7 +19,7 @@ export let memof1Call = (f: any, args: any[]) => {
   let caches = atomSingletonCallCaches.deref();
   if (caches.has(f)) {
     let pair = caches.get(f);
-    if (equal(pair[0], args)) {
+    if (isEqual(pair[0], args)) {
       return pair[1];
     } else {
       let ret = f(...args);
@@ -32,7 +42,7 @@ export let memof1CallBy = (key: any, f: any, args: any[]) => {
       let dict = caches.get(f);
       if (dict[key]! == null) {
         let pair = dict[key];
-        if (equal(pair[0], args)) {
+        if (isEqual(pair[0], args)) {
           return pair[1];
         } else {
           let ret = f(...args);

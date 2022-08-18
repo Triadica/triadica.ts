@@ -1,6 +1,6 @@
 {
   "name": "triadica",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Tiny tool for playing with WebGL",
   "main": "lib/index.mjs",
   "repository": "git@github.com:Triadica/triadica.ts.git",
@@ -18,7 +18,6 @@
   },
   "dependencies": {
     "@quamolit/touch-control": "^0.0.11",
-    "deep-equal": "^2.0.5",
     "immer": "^9.0.15",
     "ismobilejs": "^1.1.1",
     "twgl.js": "^4.24.0"
