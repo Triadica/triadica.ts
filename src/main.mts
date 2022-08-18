@@ -83,6 +83,7 @@ let dispatch = (op: string, data: any) => {
 
 export let reload = () => {
   // TODO reset-memof1-caches
+  renderApp();
   atomStore.removeWatch("change");
   atomStore.addWatch("change", (prev, store) => {
     renderApp();

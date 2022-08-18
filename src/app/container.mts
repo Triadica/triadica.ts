@@ -1,6 +1,7 @@
 import { group, object } from "../alias.mjs";
 import { Atom } from "../atom.mjs";
 import { compButton, compDragPoint, compSlider } from "../comp/control.mjs";
+import { compStitch } from "../comp/stitch.mjs";
 
 import vs from "../../shaders/lines.vert";
 import fs from "../../shaders/lines.frag";
@@ -21,6 +22,10 @@ export let compContainer = (store: any) => {
     }),
     compButton({ position: [200, 200, 30], color: [0.2, 0.8, 0.7] }, (e, dispatch: FnDispatch) => {
       console.log("clicked");
+    }),
+    compStitch({
+      position: [100, 200, 0],
+      chars: [0xf2dfea34, 0xc3c4a59d, 0x88737645],
     })
   );
 };
