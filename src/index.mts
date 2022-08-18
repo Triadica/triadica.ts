@@ -1,15 +1,17 @@
+import * as twgl from "twgl.js";
+
 import { backConeScale, cachedBuildProgram, dpr, isMobile, isPostEffect } from "./config.mjs";
-import { Atom } from "./data.mjs";
+import { Atom } from "./atom.mjs";
 import { atomGlContext, atomMouseHoldingPaths, atomObjectsBuffer, atomObjectsTree, atomProxiedDispatch } from "./global.mjs";
 import { atomViewerPosition, atomViewerUpward, moveViewerBy, newLookatPoint, rotateGlanceBy, spinGlanceBy, transform3d } from "./perspective.mjs";
-import * as twgl from "twgl.js";
-import { ControlStates, V2 } from "./touch-control.mjs";
+import { ControlStates } from "./touch-control.mjs";
 import { cDistance } from "./math.mjs";
+import { V2, TriadicaElement, TriadicaObjectData } from "./primes.mjs";
+
 import effectXVert from "../shaders/effect-x.vert";
 import effectXFrag from "../shaders/effect-x.frag";
 import effectMixVert from "../shaders/effect-mix.vert";
 import effectMixFrag from "../shaders/effect-mix.frag";
-import { TriadicaElement, TriadicaObjectData } from "./alias.mjs";
 
 export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
   canvas.style.width = `${window.innerWidth}`;
@@ -340,7 +342,7 @@ let handleScreenMousedown = (event: MouseEvent) => {
     let onMousedown = nearest[0];
     let coord = nearest[1];
     onMousedown(event, atomProxiedDispatch.deref());
-    atomMouseHoldingPaths.deref().push(coord as any); // TODO
+    atomMouseHoldingPaths.deref().push(coord);
   }
 };
 

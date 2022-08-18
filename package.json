@@ -1,6 +1,6 @@
 {
   "name": "triadica",
-  "version": "0.0.1-a2",
+  "version": "0.0.1",
   "description": "Tiny tool for playing with WebGL",
   "main": "lib/index.mjs",
   "repository": "git@github.com:Triadica/triadica.ts.git",

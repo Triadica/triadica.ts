@@ -1,6 +1,7 @@
-import { Atom } from "./data.mjs";
 import * as twgl from "twgl.js";
 import isMobilejs from "ismobilejs";
+
+import { Atom } from "./atom.mjs";
 
 export let getEnv = (name: string, defaultValue: string): string => {
   let params = new URLSearchParams(location.search.slice(1));

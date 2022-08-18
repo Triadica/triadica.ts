@@ -1,8 +1,8 @@
-import { object, TriadicaObjectData } from "../alias.mjs";
-import { V3, vAdd, vCross, vDot, vScale, vSub } from "../quaternion.mjs";
-import { Atom } from "../data.mjs";
-import { V2 } from "../touch-control.mjs";
-import { FnDispatch } from "../primes.mjs";
+import { object } from "../alias.mjs";
+import { vAdd, vCross, vDot, vScale, vSub } from "../quaternion.mjs";
+
+import { Atom } from "../atom.mjs";
+import { FnDispatch, V3, V2, TriadicaObjectData } from "../primes.mjs";
 
 let atomDragCache = new Atom<{ x: number; y: number }>({
   x: 0,

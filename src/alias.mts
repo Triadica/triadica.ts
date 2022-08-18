@@ -1,13 +1,6 @@
-import { V3 } from "./quaternion.mjs";
 import * as twgl from "twgl.js";
 
-export interface TriadicaGroup {
-  type: "group";
-  children: TriadicaElement[];
-}
-
-/** major type for elements */
-export type TriadicaElement = TriadicaGroup | TriadicaObjectData;
+import { DrawMode, PackedAttribute, TriadicaElement, TriadicaGroup, TriadicaHitRegion, TriadicaObjectData, TriadicaObjectOptions, V3 } from "./primes.mjs";
 
 export let group = (options: Record<string, any>, ...children: TriadicaElement[]): TriadicaGroup => {
   return {
@@ -16,49 +9,12 @@ export let group = (options: Record<string, any>, ...children: TriadicaElement[]
   };
 };
 
-export type DrawMode = "triangles" | "lines" | "line-strip" | "line-loop" | "triangle-fan" | "triangle-strip";
-
-type PackedAttribute = PackedAttribute[] | Record<string, number | number[]>;
-
-/** an object of drawing things */
-export interface TriadicaObjectOptions {
-  vertexShader: string;
-  fragmentShader: string;
-  drawMode: DrawMode;
-  points?: V3[];
-  indices?: number[];
-  attributes?: Record<string, number[][]>;
-  packedAttrs?: PackedAttribute[];
-  getUniforms?: () => Record<string, any>;
-  hitRegion?: TriadicaHitRegion;
-}
-
-export interface TriadicaObjectData {
-  type: "object";
-  drawMode: DrawMode;
-  vertexShader: string;
-  fragmentShader: string;
-  // TODO
-  arrays: Record<string, any>;
-  getUniforms?: () => Record<string, any>;
-  hitRegion?: TriadicaHitRegion;
-}
-
 export interface TriadicaObjectBuffer {
   program: twgl.ProgramInfo;
   buffer: twgl.BufferInfo;
   drawMode: DrawMode;
   getUniforms: () => Record<string, any>;
   hitRegion?: TriadicaHitRegion;
-}
-
-interface TriadicaHitRegion {
-  radius: number;
-  position: V3;
-  onHit?: (e: MouseEvent, d: (op: string, data: any) => void) => void;
-  onMousedown?: (e: MouseEvent, d: (op: string, data: any) => void) => void;
-  onMousemove?: (e: MouseEvent, d: (op: string, data: any) => void) => void;
-  onMouseup?: (e: MouseEvent, d: (op: string, data: any) => void) => void;
 }
 
 export let object = (options: TriadicaObjectOptions): TriadicaObjectData => {

@@ -10,7 +10,7 @@ Demo https://r.tiye.me/Triadica/triadica.ts/
 yarn add triadica
 ```
 
-_TODO_
+Use boilerplate from https://github.com/Triadica/triadica-ts-workflow .
 
 ### License
 

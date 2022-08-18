@@ -1,6 +1,6 @@
-import { V2 } from "./touch-control.mjs";
-import { Atom } from "./data.mjs";
-import { TriadicaElement, TriadicaObjectBuffer, TriadicaObjectData } from "./alias.mjs";
+import { TriadicaElement, TriadicaObjectData } from "./primes.mjs";
+import { Atom } from "./atom.mjs";
+import { TriadicaObjectBuffer } from "./alias.mjs";
 
 export let atomGlContext = new Atom<WebGLRenderingContext>(null);
 
