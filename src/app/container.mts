@@ -1,14 +1,9 @@
-import { group, object } from "../alias.mjs";
-import { Atom } from "../atom.mjs";
+import { group } from "../alias.mjs";
 import { compButton, compDragPoint, compSlider } from "../comp/control.mjs";
 import { compStitch } from "../comp/stitch.mjs";
+import { compAxis } from "../comp/axis.mjs";
 
-import vs from "../../shaders/lines.vert";
-import fs from "../../shaders/lines.frag";
-import { FnDispatch } from "../primes.mjs";
-import { V3, V2, TriadicaObjectData } from "../primes.mjs";
-
-export let atomDirtyUniforms = new Atom({});
+import { FnDispatch, V3, V2 } from "../primes.mjs";
 
 export let compContainer = (store: any) => {
   return group(
@@ -28,20 +23,4 @@ export let compContainer = (store: any) => {
       chars: [0xf2dfea34, 0xc3c4a59d, 0x88737645],
     })
   );
-};
-
-let compAxis = (): TriadicaObjectData => {
-  return object({
-    vertexShader: vs,
-    fragmentShader: fs,
-    drawMode: "lines",
-    points: [
-      [-400, 0, 0],
-      [400, 0, 0],
-      [0, 400, 0],
-      [0, -400, 0],
-      [0, 0, -400],
-      [0, 0, 400],
-    ],
-  });
 };

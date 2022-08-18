@@ -6,9 +6,10 @@ import { Atom } from "./atom.mjs";
 import { atomGlContext } from "./global.mjs";
 import { loadObjects, onControlEvent, paintCanvas, resetCanvasSize, setupMouseEvents } from "./index.mjs";
 import { renderControl, replaceControlLoop, startControlLoop } from "./touch-control.mjs";
-import { atomDirtyUniforms, compContainer } from "./app/container.mjs";
+import { compContainer } from "./app/container.mjs";
 import { updateStates } from "./cursor.mjs";
 import { resetMemof1Caches } from "./memof1.mjs";
+import { atomDirtyUniforms } from "./global.mjs";
 
 let canvas = document.querySelector("canvas");
 
