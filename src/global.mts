@@ -13,3 +13,5 @@ export let atomProxiedDispatch = new Atom<(op: string, data: any) => void>(null)
 export let atomObjectsBuffer = new Atom<TriadicaObjectBuffer[]>([]);
 
 export let atomMouseHoldingPaths = new Atom<number[][]>([]);
+
+export let atomDirtyUniforms = new Atom({});
