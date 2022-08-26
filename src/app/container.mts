@@ -5,6 +5,8 @@ import { compAxis } from "../comp/axis.mjs";
 
 import { FnDispatch, V3, V2 } from "../primes.mjs";
 
+import { compJadeite } from "./jadeite.mjs";
+
 export let compContainer = (store: any) => {
   return group(
     {},
@@ -21,6 +23,7 @@ export let compContainer = (store: any) => {
     compStitch({
       position: [100, 200, 0],
       chars: [0xf2dfea34, 0xc3c4a59d, 0x88737645],
-    })
+    }),
+    compJadeite()
   );
 };
