@@ -1,17 +1,16 @@
 import { group, object } from "../alias.mjs";
 
-import { FnDispatch, V3, V2 } from "../primes.mjs";
+import { V3, TriadicaElement } from "../primes.mjs";
 
 import jadeiteVert from "../../shaders/jadeite.vert";
 import jadeiteFrag from "../../shaders/jadeite.frag";
 
 import { range } from "../math.mjs";
 
-export let compJadeite = (store: any) => {
-  let n = 300;
-  let r = 200;
-  let step = 300;
-  let origin: V3 = [0, 0, 0];
+export let compJadeite = (): TriadicaElement => {
+  let n = 400;
+  let r = 400;
+  let step = 800;
 
   return object({
     drawMode: "triangles",
@@ -32,5 +31,10 @@ export let compJadeite = (store: any) => {
         return [{ position: p0 }, { position: p1 }, { position: p2 }, { position: p1 }, { position: p2 }, { position: p3 }];
       });
     }),
+    getUniforms() {
+      return {
+        // u_time: performance.now() * 0.001,
+      };
+    },
   });
 };
