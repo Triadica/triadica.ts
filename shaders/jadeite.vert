@@ -19,7 +19,7 @@ void main() {
 
   vec3 p = a_position / (0.8 + pow(b, 2.0) * 0.16 );
   // vec3 p = a_position;
-  p.y += a * 200.0 - 40.0;
+  p.y += a * 80.0 - 80.0;
   v_h = a;
 
   PointResult result = transform_perspective(p);
