@@ -91,7 +91,8 @@ export let compStitch = (props: { chars: number[]; position: V3 }) => {
           ] as V3[]
         ).map((x) => {
           return {
-            position: vAdd(vAdd(vScale(x, size), position), vScale([size + gap, 0, 0], idx)),
+            base: position,
+            position: vAdd(vScale(x, size), vScale([size + gap, 0, 0], idx)),
           };
         });
       }),
@@ -106,7 +107,8 @@ export let compStitch = (props: { chars: number[]; position: V3 }) => {
           let x = info.position;
           let dataIdx = info.data;
           return {
-            position: vAdd(vAdd(vScale(x, s0), position), vScale([size + gap, 0, 0], idx)),
+            base: position,
+            position: vAdd(vScale(x, s0), vScale([size + gap, 0, 0], idx)),
             value: pattern.charAt(dataIdx) == "1" ? 1 : 0,
           };
         });
