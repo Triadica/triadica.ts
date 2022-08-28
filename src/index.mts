@@ -14,8 +14,8 @@ import effectMixVert from "../shaders/effect-mix.vert";
 import effectMixFrag from "../shaders/effect-mix.frag";
 
 export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
-  canvas.style.width = `${window.innerWidth}`;
-  canvas.style.height = `${window.innerHeight}`;
+  canvas.style.width = `${window.innerWidth}px`;
+  canvas.style.height = `${window.innerHeight}px`;
 };
 
 export let loadObjects = (tree: TriadicaElement, dispatch: (op: string, data: any) => void) => {
