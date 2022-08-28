@@ -7,9 +7,11 @@ import jadeiteFrag from "../../shaders/jadeite.frag";
 
 import { range } from "../math.mjs";
 
+let startTime = Date.now();
+
 export let compJadeite = (): TriadicaElement => {
   let n = 400;
-  let r = 400;
+  let r = 200;
   let step = 800;
 
   return object({
@@ -33,7 +35,7 @@ export let compJadeite = (): TriadicaElement => {
     }),
     getUniforms() {
       return {
-        // u_time: performance.now() * 0.001,
+        u_time: (Date.now() - startTime) * 0.001,
       };
     },
   });
