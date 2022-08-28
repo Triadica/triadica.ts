@@ -8,7 +8,7 @@ import { range } from "../math.mjs";
 let pageStart = Date.now();
 
 export let compVortex = (): TriadicaObjectData => {
-  // -8 to 8
+  // -6 to 6
   let layers = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6];
   let pieces = 400;
   let segments = 200;
