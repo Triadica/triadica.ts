@@ -3,6 +3,7 @@ import { compTabs } from "./tabs.mjs";
 import { compButton, compDragPoint, compSlider } from "../comp/control.mjs";
 import { compStitch } from "../comp/stitch.mjs";
 import { compAxis } from "../comp/axis.mjs";
+import { compTubeDemo } from "./tube-demo.mjs";
 
 import { FnDispatch, V3, V2, TriadicaElement } from "../primes.mjs";
 
@@ -21,6 +22,7 @@ export let compContainer = (store: any) => {
         { name: "stitch" },
         { name: "jadeite" },
         { name: "vortex" },
+        { name: "tube" },
       ],
       (t, dispatch) => {
         dispatch("tab-focus", t.name);
@@ -53,6 +55,8 @@ export let compContainer = (store: any) => {
               console.log("clicked");
             })
           );
+        case "tube":
+          return compTubeDemo();
         default:
           console.warn("unknown tab:", store.tab);
           return compAxis();

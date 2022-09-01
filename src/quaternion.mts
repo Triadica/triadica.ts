@@ -21,3 +21,8 @@ export let vAdd = (a: V3, b: V3): V3 => {
 export let vSub = (a: V3, b: V3): V3 => {
   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 };
+
+export let vNomalize = (a: V3): V3 => {
+  let len = Math.sqrt(vDot(a, a));
+  return vScale(a, 1 / len);
+};
