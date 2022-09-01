@@ -10,7 +10,7 @@ import linesFrag from "../../shaders/lines.frag";
 
 export interface TubeOptions {
   drawMode?: DrawMode;
-  curve: { position: V3 }[];
+  curve: { position: V3 }[] | { position: V3 }[][];
   /** defaults to 10 */
   radius?: number;
   /** defaults to [0,0,1] */
@@ -27,45 +27,53 @@ export let compTube = (options: TubeOptions): TriadicaElement => {
   let radius = options.radius || 10;
   let normal0 = options.normal0 || [0, 0, 1];
   let circleStep = options.circleStep || 8;
-  let dAngle = (2 * Math.PI) / circleStep;
   return object({
     drawMode: options.drawMode || "triangles",
     vertexShader: options.vertexShader || linesVert,
     fragmentShader: options.fragmentShader || linesFrag,
     getUniforms: options.getUniforms,
-    packedAttrs: range(points.length - 1).map((idx) => {
-      let pRaw = points[idx];
-      let qRaw = points[idx + 1];
-      let notAtEnd = idx + 2 < points.length;
-      let p = pRaw.position;
-      let q = qRaw.position;
-      let q2 = notAtEnd ? points[idx + 2].position : q;
-      let v = vSub(q, p);
-      let v2 = notAtEnd ? vSub(q2, p) : v;
-      let direction1 = vNomalize(vCross(v, normal0));
-      let direction2 = vNomalize(vCross(direction1, v));
-      let direction3 = vNomalize(vCross(v2, normal0));
-      let direction4 = vNomalize(vCross(direction3, v2));
-      return range(circleStep).map((cIdx) => {
-        let p0 = vAdd(vAdd(p, vScale(direction1, radius * Math.cos(dAngle * cIdx))), vScale(direction2, radius * Math.sin(dAngle * cIdx)));
-        let p1 = vAdd(vAdd(p, vScale(direction1, radius * Math.cos(dAngle * (cIdx + 1)))), vScale(direction2, radius * Math.sin(dAngle * (cIdx + 1))));
-        let p2 = vAdd(vAdd(q, vScale(direction3, radius * Math.cos(dAngle * cIdx))), vScale(direction4, radius * Math.sin(dAngle * cIdx)));
-        let p3 = vAdd(vAdd(q, vScale(direction3, radius * Math.cos(dAngle * (cIdx + 1)))), vScale(direction4, radius * Math.sin(dAngle * (cIdx + 1))));
-        return [
-          { ...pRaw, position: p0 },
-          { ...pRaw, position: p1 },
-          { ...qRaw, position: p2 },
-          { ...pRaw, position: p1 },
-          { ...qRaw, position: p2 },
-          { ...qRaw, position: p3 },
-        ];
-      });
-    }),
+    packedAttrs: Array.isArray(points[0])
+      ? points.map((child) => {
+          return buildTubePoints(child as { position: V3 }[], radius, normal0, circleStep);
+        })
+      : buildTubePoints(points as { position: V3 }[], radius, normal0, circleStep),
+  });
+};
+
+let buildTubePoints = (points: { position: V3 }[], radius: number, normal0: V3, circleStep: number) => {
+  let dAngle = (2 * Math.PI) / circleStep;
+  return range(points.length - 1).map((idx) => {
+    let pRaw = points[idx];
+    let qRaw = points[idx + 1];
+    let notAtEnd = idx + 2 < points.length;
+    let p = pRaw.position;
+    let q = qRaw.position;
+    let q2 = notAtEnd ? points[idx + 2].position : q;
+    let v = vSub(q, p);
+    let v2 = notAtEnd ? vSub(q2, p) : v;
+    let direction1 = vNomalize(vCross(v, normal0));
+    let direction2 = vNomalize(vCross(direction1, v));
+    let direction3 = vNomalize(vCross(v2, normal0));
+    let direction4 = vNomalize(vCross(direction3, v2));
+    return range(circleStep).map((cIdx) => {
+      let p0 = vAdd(vAdd(p, vScale(direction1, radius * Math.cos(dAngle * cIdx))), vScale(direction2, radius * Math.sin(dAngle * cIdx)));
+      let p1 = vAdd(vAdd(p, vScale(direction1, radius * Math.cos(dAngle * (cIdx + 1)))), vScale(direction2, radius * Math.sin(dAngle * (cIdx + 1))));
+      let p2 = vAdd(vAdd(q, vScale(direction3, radius * Math.cos(dAngle * cIdx))), vScale(direction4, radius * Math.sin(dAngle * cIdx)));
+      let p3 = vAdd(vAdd(q, vScale(direction3, radius * Math.cos(dAngle * (cIdx + 1)))), vScale(direction4, radius * Math.sin(dAngle * (cIdx + 1))));
+      return [
+        { ...pRaw, position: p0 },
+        { ...pRaw, position: p1 },
+        { ...qRaw, position: p2 },
+        { ...pRaw, position: p1 },
+        { ...qRaw, position: p2 },
+        { ...qRaw, position: p3 },
+      ];
+    });
   });
 };
 
 export interface BrushOptions {
-  curve: { position: V3 }[];
+  curve: { position: V3 }[] | { position: V3 }[][];
   /** defaults to [8, 0] */
   brush?: V2;
   brush1?: V2;
@@ -87,41 +95,49 @@ export let compBrush = (options: BrushOptions): TriadicaElement => {
     vertexShader: options.vertexShader ?? brushVert,
     fragmentShader: options.fragmentShader ?? brushFrag,
     getUniforms: options.getUniforms,
-    packedAttrs: range(points.length - 1).map((idx) => {
-      let pRaw = points[idx];
-      let qRaw = points[idx + 1];
-      let p = pRaw.position;
-      let q = qRaw.position;
-      return [
-        [
-          { ...pRaw, brush: [0, 0] },
-          { ...pRaw, brush: brush },
-          { ...qRaw, brush: [0, 0] },
-          { ...pRaw, brush: brush },
-          { ...qRaw, brush: [0, 0] },
-          { ...qRaw, brush: brush },
-        ],
-        brush1 != null
-          ? [
-              { ...pRaw, brush: [0, 0] },
-              { ...pRaw, brush: brush1 },
-              { ...qRaw, brush: [0, 0] },
-              { ...pRaw, brush: brush1 },
-              { ...qRaw, brush: [0, 0] },
-              { ...qRaw, brush: brush1 },
-            ]
-          : [],
-        brush2 != null
-          ? [
-              { ...pRaw, brush: [0, 0] },
-              { ...pRaw, brush: brush2 },
-              { ...qRaw, brush: [0, 0] },
-              { ...pRaw, brush: brush2 },
-              { ...qRaw, brush: [0, 0] },
-              { ...qRaw, brush: brush2 },
-            ]
-          : [],
-      ];
-    }),
+    packedAttrs: Array.isArray(points[0])
+      ? points.map((child) => {
+          return buildBrushPoints(child as { position: V3 }[], brush, brush1, brush2);
+        })
+      : buildBrushPoints(points as { position: V3 }[], brush, brush1, brush2),
+  });
+};
+
+let buildBrushPoints = (points: { position: V3 }[], brush: V2, brush1: V2, brush2: V2) => {
+  return range(points.length - 1).map((idx) => {
+    let pRaw = points[idx];
+    let qRaw = points[idx + 1];
+    let p = pRaw.position;
+    let q = qRaw.position;
+    return [
+      [
+        { ...pRaw, brush: [0, 0] },
+        { ...pRaw, brush: brush },
+        { ...qRaw, brush: [0, 0] },
+        { ...pRaw, brush: brush },
+        { ...qRaw, brush: [0, 0] },
+        { ...qRaw, brush: brush },
+      ],
+      brush1 != null
+        ? [
+            { ...pRaw, brush: [0, 0] },
+            { ...pRaw, brush: brush1 },
+            { ...qRaw, brush: [0, 0] },
+            { ...pRaw, brush: brush1 },
+            { ...qRaw, brush: [0, 0] },
+            { ...qRaw, brush: brush1 },
+          ]
+        : [],
+      brush2 != null
+        ? [
+            { ...pRaw, brush: [0, 0] },
+            { ...pRaw, brush: brush2 },
+            { ...qRaw, brush: [0, 0] },
+            { ...pRaw, brush: brush2 },
+            { ...qRaw, brush: [0, 0] },
+            { ...qRaw, brush: brush2 },
+          ]
+        : [],
+    ];
   });
 };
