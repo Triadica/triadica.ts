@@ -26,3 +26,7 @@ export let vNomalize = (a: V3): V3 => {
   let len = Math.sqrt(vDot(a, a));
   return vScale(a, 1 / len);
 };
+
+export let vLength = (x: V3): number => {
+  return Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
+};
