@@ -12,6 +12,7 @@ import effectXVert from "../shaders/effect-x.vert";
 import effectXFrag from "../shaders/effect-x.frag";
 import effectMixVert from "../shaders/effect-mix.vert";
 import effectMixFrag from "../shaders/effect-mix.frag";
+import { vCross, vNomalize, vLength } from "./quaternion.mjs";
 
 export let resetCanvasSize = (canvas: HTMLCanvasElement) => {
   canvas.style.width = `${window.innerWidth}px`;
@@ -43,10 +44,16 @@ export let paintCanvas = () => {
   let gl = atomGlContext.deref();
   let scaledWidth = dpr * window.innerWidth;
   let scaledHeight = dpr * window.innerHeight;
+  let lookat = newLookatPoint();
+  let lookDistance = vLength(lookat);
+  let forward = vNomalize(lookat);
+  let rightward = vCross(forward, atomViewerUpward.deref());
   let uniforms = {
-    lookPoint: newLookatPoint(),
-    upwardDirection: atomViewerUpward.deref(),
+    lookDistance,
+    upward: atomViewerUpward.deref(),
+    forward,
     cameraPosition: atomViewerPosition.deref(),
+    rightward,
     coneBackScale: backConeScale,
     viewportRatio: window.innerHeight / window.innerWidth,
   };
