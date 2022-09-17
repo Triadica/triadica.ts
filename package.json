@@ -1,6 +1,6 @@
 {
   "name": "triadica",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Tiny tool for playing with WebGL",
   "main": "lib/index.mjs",
   "repository": "git@github.com:Triadica/triadica.ts.git",
@@ -13,7 +13,7 @@
     "@types/deep-equal": "^1.0.1",
     "prettier": "^2.7.1",
     "typescript": "^4.8.3",
-    "vite": "^3.1.1",
+    "vite": "^3.1.2",
     "vite-plugin-glsl": "^0.4.0"
   },
   "dependencies": {

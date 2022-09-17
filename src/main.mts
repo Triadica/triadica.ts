@@ -15,7 +15,7 @@ let canvas = document.querySelector("canvas");
 
 let atomStore = new Atom({
   v: 0,
-  tab: "jadeite",
+  tab: "axis",
   p1: [0, 0, 0],
   p2: [40, 20, 0],
   states: {},
