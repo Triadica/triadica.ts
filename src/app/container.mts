@@ -24,6 +24,9 @@ export let compContainer = (store: any) => {
         { name: "vortex" },
         { name: "tube" },
       ],
+      {
+        selected: store.tab,
+      },
       (t, dispatch) => {
         dispatch("tab-focus", t.name);
       }
