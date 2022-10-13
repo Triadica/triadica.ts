@@ -4,7 +4,7 @@ import { backConeScale, cachedBuildProgram, dpr, isMobile, isPostEffect } from "
 import { Atom } from "./atom.mjs";
 import { atomGlContext, atomMouseHoldingPaths, atomObjectsBuffer, atomObjectsTree, atomProxiedDispatch } from "./global.mjs";
 import { atomViewerPosition, atomViewerUpward, moveViewerBy, newLookatPoint, rotateGlanceBy, spinGlanceBy, transform3d } from "./perspective.mjs";
-import { ControlStates } from "./touch-control.mjs";
+import { ControlStates } from "@triadica/touch-control";
 import { cDistance } from "./math.mjs";
 import { V2, TriadicaElement, TriadicaObjectData } from "./primes.mjs";
 
