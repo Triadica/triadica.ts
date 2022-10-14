@@ -1,4 +1,6 @@
-## Triadica
+## Triadica in TYpeScript
+
+![npm package](https://img.shields.io/npm/v/@triadica/touch-control?style=flat-square)
 
 > Tiny tool for playing with WebGL
 
